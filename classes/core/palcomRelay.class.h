@@ -1,7 +1,7 @@
 class PalcomRelay{
 	private:
 		WebServer webServer;
-
+		int context = 0;
 		/*
 		 * Checks for certain configuration files to determine if we should be
 		 * operating in Access-point mode or client mode.
@@ -72,10 +72,14 @@ class PalcomRelay{
 			
 			}
 
+			Serial.printf("Setup Successful.\n");
 			return true;
 		}
 
-		void run(void){
-		
+		void run(WiFiClient client){
+			switch(this->context){
+				default:
+					webServer.setupPage(client);
+			}
 		}
 };

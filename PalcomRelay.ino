@@ -59,7 +59,9 @@ void setup()
 int count = 0;
 
 void loop(){
-  palcomRelay.run();
+  WiFiClient client = server.available();
+  if(client)
+    palcomRelay.run(client);
 /*#if LORA_SENDER
     int32_t rssi;
     if (WiFi.status() == WL_CONNECTED) {
