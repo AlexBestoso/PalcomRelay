@@ -77,9 +77,6 @@ class PalcomRelay{
 		}
 
 		void run(WiFiClient client){
-			switch(this->context){
-				default:
-					webServer.setupPage(client);
-			}
+			this->context = webServer.run(client, context);
 		}
 };

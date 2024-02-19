@@ -4,7 +4,8 @@ class WebServer{
 		String ap_ssid = "LoRaSig";
 		String ap_password = "LoRaSig!";
 		IPAddress relayIp;
-		//WiFiServer server(80);
+
+		SetupPage setupPage;
 	public:
 		String getIpAsString(void){
   			return String(relayIp[0]) + String(".") + String(relayIp[1]) + String(".") + String(relayIp[2]) + String(".") + String(relayIp[3]);
@@ -39,7 +40,9 @@ class WebServer{
 			return true;
 		}
 
-		void setupPage(WiFiClient client){
+		int run(WiFiClient client, int context){
+			bool hasPostContent = false;
+			int postSize = 0;
 			if(client){
 				Serial.printf("Client Available.\n");
 				String currentLine = "";
@@ -48,15 +51,35 @@ class WebServer{
 						char c = client.read();
 						Serial.write(c);
 						if(c == '\n'){
-							if(currentLine.length() == 0){
-								client.println("HTTP/1.1 200 OK");
-            							client.println("Content-type:text/html");
-            							client.println();
-
-								client.print("<h1>Place holder setup page.</h1>");
-
-								client.println();
+						/*	if(currentLine.length() == 0){
+								if(hasPostContent){
+									hasPostContent = false;
+									continue;
+								}
+								String response = "";
+								switch(context){
+									default: // Setup Page
+										response = setupPage.getResponseHeader();
+										response += setupPage.getPageContent();
+								}
+								response += "\r\n";
+								client.print(response);
 								break;
+							}*/
+							
+							currentLine += "\r\n";
+							if(currentLine.startsWith("Content-Length: ") && currentLine.endsWith("\r\n")){
+								Serial.printf("Extracting content length : %s\n", currentLine.c_str());
+								String grabber = "";
+								int i=16;
+								while(currentLine[i] != '\r'){
+									grabber += currentLine[i];
+									i++;
+								}
+								postSize = grabber.toInt();
+								if(postSize > 0)
+									hasPostContent = true;
+								currentLine = "";
 							}else{
 								currentLine = "";
 							}
@@ -65,10 +88,25 @@ class WebServer{
 						}
 
 						// Process get / post request.
+						switch(context){
+							default: // Setup Page
+								 setupPage.run(currentLine);
+						}
+					}else{
+						String response = "";
+						switch(context){
+							default: // Setup Page
+								response = setupPage.getResponseHeader();
+								response += setupPage.getPageContent();
+						}
+						response += "\r\n";
+						client.print(response);
+						break;
 					}
 				}
 			}
 			client.stop();
 			Serial.println("Client Disconnected.");
+			return context;
 		}
 };
