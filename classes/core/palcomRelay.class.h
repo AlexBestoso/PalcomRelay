@@ -1,14 +1,25 @@
+#define RELAY_CONTEXT_SETUP 0
 class PalcomRelay{
 	private:
 		WebServer webServer;
-		int context = 0;
+		AuthFile authFile;
+		int context = RELAY_CONTEXT_SETUP;
 		/*
 		 * Checks for certain configuration files to determine if we should be
 		 * operating in Access-point mode or client mode.
 		 * */
 		bool checkWiFiOperationMode(void){
-			
-			return webServer.getAccessPointMode();
+			Serial.printf("DEBUG: Checking Operation Mode\n");
+			PalcomFS pfs;
+			if(pfs.exists(pfs_relayAuth)){
+				Serial.printf("DEBUG: Setting acceess point mode to false.\n");
+				webServer.setAccessPointMode(false);
+			}			
+			Serial.printf("DEBUG: Fetching Result.\n");
+			bool ret = webServer.getAccessPointMode();
+
+			Serial.printf("DEBUG: Returning Result.\n");
+			return ret;
 		}
 	public:
 		PalcomRelay(void){
@@ -69,7 +80,9 @@ class PalcomRelay{
 					while(1){delay(100);}
 				}
 			}else{
-			
+                                while(1){
+					Serial.printf("Setting up WiFi in Client mode.\n");
+					delay(100);}	
 			}
 
 			Serial.printf("Setup Successful.\n");

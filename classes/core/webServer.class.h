@@ -6,6 +6,117 @@ class WebServer{
 		IPAddress relayIp;
 
 		SetupPage setupPage;
+
+		String httpRequest = "";
+
+		void fetchHttpRequest(WiFiClient client){
+			this->httpRequest = "";
+			while(client.connected()){
+				if(client.available()){
+                                        char c = client.read();
+					this->httpRequest += c;	
+				}else{
+					break;
+				}
+			}
+		}
+
+		HttpPacket processRequest(void){
+			HttpPacket ret;
+			if(this->httpRequest == ""){
+				ret.error = true;
+				return ret;
+			}
+
+			/*
+			 * Check if the HTTP request is a POST/GET request.
+			 * */
+			int uriOffset = 0;
+			if(this->httpRequest.startsWith("POST ")){
+				ret.post_request = true;
+				ret.get_request = false;
+				uriOffset = 5;
+			}else if(this->httpRequest.startsWith("GET ")){
+				ret.post_request = false;
+                                ret.get_request = true;
+				uriOffset = 4;
+			}else{
+				ret.error = true;
+				return ret;
+			}
+
+
+			/*
+			 * Get the URI from the above request.
+			 * */
+			ret.uri = "";
+			while(this->httpRequest[uriOffset] != ' ' && this->httpRequest[uriOffset] != '\n' && this->httpRequest[uriOffset] != '\r' && ret.uri.length() < 512){
+				ret.uri += this->httpRequest[uriOffset];
+				uriOffset++;
+			}
+
+			/* Do POST specific shit */
+			if(ret.post_request){
+				// fetch Content-Length
+				String line = "";
+				bool christ = false;
+				for(int i=0; i<this->httpRequest.length(); i++){
+					line += httpRequest[i];
+					if(line.endsWith("\r\n")){
+						if(line.startsWith("\r\n") && line.length() == 2){
+							christ = true;
+							line = "";
+							continue;
+						}
+						if(line.startsWith("Content-Length:")){
+							String grab = "";
+							for(int j=16; j<line.length(); j++){
+								if(line[j] == '\r' || line[j] == '\n'){
+									ret.content_length = grab.toInt();
+									break;
+								}
+								grab += line[j];
+							}
+						}
+						line = "";
+					}
+
+				}
+				if(christ){
+					ret.post_len = 0;
+					//ret.post_val
+					String sacrament = "";
+					christ = false;
+					for(int j=0; j<line.length(); j++){
+						if(ret.post_len >= HTTP_PACKET_BUF_SIZE){
+							break;
+						}
+						char c = line[j];
+
+						if(c == '\r' || c == '\n'){
+							break;
+						}
+						if(c == '&'){
+							ret.post_val[ret.post_len] = sacrament;
+							ret.post_len++;
+							sacrament = "";
+							continue;
+						}
+						if(c == '='){
+							ret.post_key[ret.post_len] = sacrament;
+							sacrament = "";
+							continue;
+						}
+						sacrament += c;
+					}
+				}
+			}
+			
+			// Process URI
+
+
+			return ret;
+		}
 	public:
 		String getIpAsString(void){
   			return String(relayIp[0]) + String(".") + String(relayIp[1]) + String(".") + String(relayIp[2]) + String(".") + String(relayIp[3]);
@@ -43,70 +154,35 @@ class WebServer{
 		int run(WiFiClient client, int context){
 			bool hasPostContent = false;
 			int postSize = 0;
+			String targetURI = "";
+			String postContent = "";
 			if(client){
-				Serial.printf("Client Available.\n");
-				String currentLine = "";
-				while(client.connected()){
-					if(client.available()){
-						char c = client.read();
-						Serial.write(c);
-						if(c == '\n'){
-						/*	if(currentLine.length() == 0){
-								if(hasPostContent){
-									hasPostContent = false;
-									continue;
-								}
-								String response = "";
-								switch(context){
-									default: // Setup Page
-										response = setupPage.getResponseHeader();
-										response += setupPage.getPageContent();
-								}
-								response += "\r\n";
-								client.print(response);
-								break;
-							}*/
-							
-							currentLine += "\r\n";
-							if(currentLine.startsWith("Content-Length: ") && currentLine.endsWith("\r\n")){
-								Serial.printf("Extracting content length : %s\n", currentLine.c_str());
-								String grabber = "";
-								int i=16;
-								while(currentLine[i] != '\r'){
-									grabber += currentLine[i];
-									i++;
-								}
-								postSize = grabber.toInt();
-								if(postSize > 0)
-									hasPostContent = true;
-								currentLine = "";
-							}else{
-								currentLine = "";
-							}
-						}else if(c != '\r'){
-							currentLine += c;
-						}
-
-						// Process get / post request.
-						switch(context){
-							default: // Setup Page
-								 setupPage.run(currentLine);
-						}
-					}else{
-						String response = "";
-						switch(context){
-							default: // Setup Page
-								response = setupPage.getResponseHeader();
-								response += setupPage.getPageContent();
-						}
-						response += "\r\n";
-						client.print(response);
-						break;
-					}
+				this->fetchHttpRequest(client);
+				HttpPacket httpPacket = this->processRequest();
+				if(httpPacket.error){
+					Serial.printf("Failed to process HTTP Packet.\n");
 				}
+
+
+				// Process get / post request.
+				switch(context){
+					default: // Setup Page
+						 context = setupPage.run(context, httpPacket);
+				}
+
+				String response = "";		
+				switch(context){
+					default: // Setup Page
+						response = setupPage.getResponseHeader();
+						response += setupPage.getPageContent();
+				}
+				response += "\r\n";
+				client.print(response);
 			}
+
 			client.stop();
 			Serial.println("Client Disconnected.");
+			setupPage.finalizeSetup();
 			return context;
 		}
 };

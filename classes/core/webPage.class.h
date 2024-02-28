@@ -16,4 +16,11 @@ class WebPage{
                          ret += "\r\n";
 			 return ret;
 		}
+
+		String craftErrorText(String text){
+			String ret = "<font color=\"red\">";
+			ret += text;
+			ret += "</font>";
+			return ret;
+		}
 };
