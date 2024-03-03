@@ -12,6 +12,7 @@
 // Global Variables
 OLED_CLASS_OBJ display(OLED_ADDRESS, OLED_SDA, OLED_SCL);
 WiFiServer server(80);
+SPIClass sdSPI(VSPI);
 #define WIFI_SSID       "Morning Star"
 #define WIFI_PASSWORD   "Bnddff6&"
 //const char *ssid = "LoRaSig";

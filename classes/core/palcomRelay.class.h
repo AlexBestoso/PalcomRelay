@@ -1,4 +1,5 @@
 #define RELAY_CONTEXT_SETUP 0
+#define RELAY_CONTEXT_MAIN 1
 class PalcomRelay{
 	private:
 		WebServer webServer;
@@ -50,7 +51,7 @@ class PalcomRelay{
 	
     			if (SDCARD_CS >  0) {
         			display.clear();
-        			SPIClass sdSPI(VSPI);
+        			//SPIClass sdSPI(VSPI);
         			sdSPI.begin(SDCARD_SCLK, SDCARD_MISO, SDCARD_MOSI, SDCARD_CS);
         			if (!SD.begin(SDCARD_CS, sdSPI)) {
             				display.drawString(display.getWidth() / 2, display.getHeight() / 2, "SDCard  FAIL");
@@ -80,9 +81,11 @@ class PalcomRelay{
 					while(1){delay(100);}
 				}
 			}else{
-                                while(1){
-					Serial.printf("Setting up WiFi in Client mode.\n");
-					delay(100);}	
+				if(!webServer.connetToAccessPoint()){
+					Serial.printf("Failed to connect to access point.\n");
+                                        while(1){delay(100);}
+				}
+				this->context = RELAY_CONTEXT_MAIN;
 			}
 
 			Serial.printf("Setup Successful.\n");

@@ -21,6 +21,58 @@ class WebServer{
 			}
 		}
 
+		AuthFile fetchAuthFile(void){
+        		AuthFile ret;
+			PalcomFS pfs;
+			if(!pfs.exists(pfs_relayAuth)){
+				Serial.printf("Auth File Doesn't Exist.\n");
+				return ret;
+			}
+			pfs.clearFileBuffer();
+			pfs.fd = SD.open(pfs_relayAuth, FILE_READ);
+			size_t fSize = pfs.fd.size();
+			Serial.printf("Auth File Size : %ld\n", fSize);
+			pfs.fd.read(fileData, fSize);
+			pfs.close();
+
+			Serial.printf("Auth File :\n%s\n", fileData);
+
+			int context = 0;
+			for(int i=0; i<fSize; i++){
+				switch(context){
+					case 0:
+						if(fileData[i] == '\n'){
+							context++;
+						}else{
+							ret.ssid += (char)fileData[i];
+						}
+						break;
+					case 1:
+						if(fileData[i] == '\n'){
+                                                        context++;
+                                                }else{
+                                                        ret.ssidPassword += (char)fileData[i];
+                                                }
+						break;
+					case 2:
+						if(fileData[i] == '\n'){
+                                                        context++;
+                                                }else{
+                                                        ret.relayUsername += (char)fileData[i];
+                                                }
+						break;
+					case 3:
+                                                if(fileData[i] == '\n'){
+                                                        context++;
+                                                }else{
+                                                        ret.relayPassword += (char)fileData[i];
+                                                }
+                                                break;
+				}
+			}
+        		return ret;
+		}
+
 		HttpPacket processRequest(void){
 			HttpPacket ret;
 			if(this->httpRequest == ""){
@@ -130,8 +182,17 @@ class WebServer{
 		bool getAccessPointMode(void){
 			return accessPointMode;
 		}
-		bool setAccessPointMode(bool v){
+		void setAccessPointMode(bool v){
 			accessPointMode = v;
+		}
+
+		/*
+		 * This is a work in progress.
+		 * */
+		String urlDecode(String encoded){
+			encoded.replace("+", " ");
+			encoded.replace("%26", "&");
+			return encoded;
 		}
 
 		bool setupAccessPoint(void){
@@ -151,6 +212,29 @@ class WebServer{
 			return true;
 		}
 
+		bool connetToAccessPoint(void){
+			AuthFile auth = this->fetchAuthFile();
+			Serial.printf("Connecting to SSID '%s' with password '%s'\n", urlDecode(auth.ssid).c_str(), urlDecode(auth.ssidPassword).c_str());
+			WiFi.begin(urlDecode(auth.ssid).c_str(), urlDecode(auth.ssidPassword).c_str());
+
+			if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+        			display.clear();
+        			Serial.println("WiFi Connect Fail");
+        			display.drawString(display.getWidth() / 2, display.getHeight() / 2, "WiFi Connect Fail");
+        			display.display();
+        			return false;
+    			}
+			
+			relayIp = WiFi.localIP();
+			display.clear();
+                        display.setFont(ArialMT_Plain_16);
+                        display.setTextAlignment(TEXT_ALIGN_CENTER);
+                        display.drawString(display.getWidth() / 2, display.getHeight() / 2, getIpAsString());
+                        display.display();
+                        delay(2000);
+			return true;
+		}
+
 		int run(WiFiClient client, int context){
 			bool hasPostContent = false;
 			int postSize = 0;
@@ -166,12 +250,18 @@ class WebServer{
 
 				// Process get / post request.
 				switch(context){
+					case RELAY_CONTEXT_MAIN:
+
+						break;
 					default: // Setup Page
 						 context = setupPage.run(context, httpPacket);
 				}
 
 				String response = "";		
 				switch(context){
+					case RELAY_CONTEXT_MAIN:
+
+						break;
 					default: // Setup Page
 						response = setupPage.getResponseHeader();
 						response += setupPage.getPageContent();
