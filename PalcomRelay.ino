@@ -15,6 +15,9 @@ WiFiServer server(80);
 SPIClass sdSPI(VSPI);
 #define WIFI_SSID       "Morning Star"
 #define WIFI_PASSWORD   "Bnddff6&"
+#define RELAY_CONTEXT_SETUP 0
+#define RELAY_CONTEXT_MAIN 1
+
 //const char *ssid = "LoRaSig";
 //const char *password = "LoRaSig!";
 

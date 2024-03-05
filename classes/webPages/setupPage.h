@@ -159,30 +159,6 @@ class SetupPage : public WebPage{
 				this->subContext = -1;// passwords don't match.
 			}
 
-			/*if(subContext == 0){ // if no errors
-				Serial.printf("Setting up Auth File.\n");
-				PalcomFS pfs;
-				Serial.printf("Checking if %s exists.\n", pfs_relayAuth);
-				if(pfs.exists(pfs_relayAuth)){
-					Serial.printf("Removing old setup file.\n");
-					pfs.rm(pfs_relayAuth);
-				}
-
-				Serial.printf("Building auth file.\n");
-				String data = targetSSID; data += "\n";
-				data += targetSSIDPass; data += "\n";
-				data += relayUsername; data += "\n";
-				data += relayPassword; data += "\n";
-			
-				Serial.printf("Opening auth file.\n");
-				pfs.fd = SD.open(pfs_relayAuth, FILE_WRITE);
-				Serial.printf("Writing to auth file.\n");
-				pfs.write((unsigned char *)data.c_str(), data.length());
-				Serial.printf("Closing file.\n");
-				pfs.close();
-
-			}*/
-
 			Serial.printf("Setting Page Content.\n");
 			this->setPageContent(this->createPage());
 			return context;
