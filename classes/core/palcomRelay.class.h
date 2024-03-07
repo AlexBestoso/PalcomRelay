@@ -52,6 +52,8 @@ class PalcomRelay{
             				display.drawString(display.getWidth() / 2, display.getHeight() / 2 - 16, "SDCard  PASS");
             				uint32_t cardSize = SD.cardSize() / (1024 * 1024);
             				display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Size: " + String(cardSize) + "MB");
+					PalcomFS pfs;
+					pfs.rm(pfs_cookies);
         			}
         			display.display();
         			delay(2000);

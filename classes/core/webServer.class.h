@@ -164,7 +164,36 @@ class WebServer{
 			
 			// Process URI
 
-
+			// Process cookies
+			String line = "";
+			for(int i=0; i<this->httpRequest.length(); i++){
+				line += httpRequest[i];
+				if(line.startsWith("Cookie: ") && line.endsWith("\r\n")){
+					int ctx = 0;
+					for(int j=8; j<line.length(); j++){
+						if(ctx == 0){
+							if(line[j] == '='){
+								ctx++;
+								continue;
+							}
+							ret.cookie_key[ret.cookie_len] += line[j];
+						}else if(ctx == 1){
+							if(line[j] == ';' || line[j] == '\r'){
+								ret.cookie_len++;
+								if(ret.cookie_len >= HTTP_PACKET_BUF_SIZE)
+									break;
+								ctx = 0;
+								if(line[j] == '\r')
+									j++;
+							}
+							ret.cookie_val[ret.cookie_len] += line[j];
+						}
+					}
+					break;
+				}else if(line.endsWith("\r\n")){
+					line = "";
+				}
+			}
 			return ret;
 		}
 	public:
@@ -248,7 +277,7 @@ class WebServer{
 				// Process get / post request.
 				switch(context){
 					case RELAY_CONTEXT_MAIN:
-						context = mainPage.run(context, httpPacket);
+						context = mainPage.run(context, httpPacket, this->fetchAuthFile());
 						break;
 					default: // Setup Page
 						 context = setupPage.run(context, httpPacket);
@@ -259,7 +288,7 @@ class WebServer{
 					case RELAY_CONTEXT_MAIN:
 						response = mainPage.getResponseHeader();
 						response += mainPage.getPageContent();
-						mainPage.finalizeSetup();
+						mainPage.finalizeMain();
 						break;
 					default: // Setup Page
 						response = setupPage.getResponseHeader();

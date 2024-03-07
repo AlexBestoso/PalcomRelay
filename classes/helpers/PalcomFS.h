@@ -1,4 +1,5 @@
 const char *pfs_relayAuth = "/auth.txt";
+const char *pfs_cookies = "/cookies";
 
 #define __GLOBAL_BUFFER_SIZE 1000
 unsigned char fileData[__GLOBAL_BUFFER_SIZE] = {0};
