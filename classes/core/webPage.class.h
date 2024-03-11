@@ -12,8 +12,20 @@ class WebPage{
 			this->pageContent = v;
 		}
 
+		void resetCookie(void){
+			this->cookie = "";
+			this->sendCookie = false;
+		}
+
 		String getPageContent(void){
 			return this->pageContent;
+		}
+
+		String getRedirectHeader(String redirectLocation){
+			String ret = "HTTP/1.1 303 See Other\r\n";
+			ret += "Location: /\r\n";
+			ret += "\r\n";
+			return ret;
 		}
 
 		String getResponseHeader(void){

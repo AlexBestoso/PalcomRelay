@@ -70,8 +70,17 @@ class WebServer{
         		return ret;
 		}
 
+		bool validatePageUri(String uri){
+			if(uri == "/" || uri == "/logout.pal"){
+				Serial.printf("Validate URI = %s\n", uri.c_str());
+				return true;
+			}
+			return false;
+		}
+
 		HttpPacket processRequest(void){
 			HttpPacket ret;
+			UrlEncoding urlEncoding;
 			if(this->httpRequest == ""){
 				Serial.printf("No HTTP Request.\n");
 				ret.error = true;
@@ -95,15 +104,6 @@ class WebServer{
 				return ret;
 			}
 
-
-			/*
-			 * Get the URI from the above request.
-			 * */
-			ret.uri = "";
-			while(this->httpRequest[uriOffset] != ' ' && this->httpRequest[uriOffset] != '\n' && this->httpRequest[uriOffset] != '\r' && ret.uri.length() < 512){
-				ret.uri += this->httpRequest[uriOffset];
-				uriOffset++;
-			}
 
 			/* Do POST specific shit */
 			if(ret.post_request){
@@ -163,6 +163,14 @@ class WebServer{
 			}
 			
 			// Process URI
+			for(int i=uriOffset; i<this->httpRequest.length(); i++){
+				if(this->httpRequest[i] == ' '){
+					break;
+				}
+				ret.uri += this->httpRequest[i];
+			}
+			ret.uri = urlEncoding.decode((char *)ret.uri.c_str(), ret.uri.length());
+			Serial.printf("DETECTED URI '%s'\n", ret.uri.c_str());
 
 			// Process cookies
 			String line = "";
@@ -284,19 +292,28 @@ class WebServer{
 				}
 
 				String response = "";		
-				switch(context){
-					case RELAY_CONTEXT_MAIN:
-						response = mainPage.getResponseHeader();
-						response += mainPage.getPageContent();
-						mainPage.finalizeMain();
-						break;
-					default: // Setup Page
-						response = setupPage.getResponseHeader();
-						response += setupPage.getPageContent();
-						setupPage.finalizeSetup();
-						break;
+				if(!this->validatePageUri(httpPacket.uri)){
+					response = mainPage.getRedirectHeader("/");
+				}else{
+					switch(context){
+						case RELAY_CONTEXT_MAIN:
+							if(httpPacket.uri == "/logout.pal"){
+								mainPage.resetCookie();
+								response = mainPage.getRedirectHeader("/");
+								break;
+							}
+							response = mainPage.getResponseHeader();
+							response += mainPage.getPageContent();
+							mainPage.finalizeMain();
+							break;
+						default: // Setup Page
+							response = setupPage.getResponseHeader();
+							response += setupPage.getPageContent();
+							setupPage.finalizeSetup();
+							break;
+					}
+					response += "\r\n";
 				}
-				response += "\r\n";
 				client.print(response);
 			}
 
