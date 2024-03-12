@@ -42,6 +42,7 @@ class MainPage : public WebPage{
 							pc += "<input type=\"submit\" value=\"Update\" name=\"updateRelay\" />";
 						pc += "</form><br /><hr /><br />";
 
+						// Factory Reset Form
 						pc += "<h2>Factory Reset</h2>";
 						pc += "<form action=\"reset.pal\" method=\"POST\">";
 							pc += "<label>Admin Password: </label><input type=\"password\" name=\"password\" value=\"\" /><br />";
@@ -73,6 +74,7 @@ class MainPage : public WebPage{
 			authCookie = "";
 			username = false;
 			password = false;
+
 			for(int i=0; i<httpPacket.cookie_len; i++){
 				if(httpPacket.cookie_key[i] == "auth"){
 					authCookie = httpPacket.cookie_val[i];
@@ -101,7 +103,18 @@ class MainPage : public WebPage{
 					this->authCookie = this->generateAuthCookie();
 				}
 			}else{ // Authenticated Context.
-				Serial.printf("User is authenticated.\n");
+				if(httpPacket.uri == "/reset.pal"){
+					for(int i=0; i<httpPacket.post_len; i++){
+                        		        if(httpPacket.post_key[i] == "password"){
+							if(httpPacket.post_val[i] == authFile.relayPassword){
+								PalcomFS pfs;
+								pfs.rm("/");
+								esp_restart();
+							}
+                        		                break;
+                        		        }
+                        		}
+				}
 			}
 
 			this->setPageContent(this->createPage());

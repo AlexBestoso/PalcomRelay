@@ -84,6 +84,7 @@ class SetupPage : public WebPage{
                                 Serial.printf("Closing file.\n");
                                 pfs.close();
 
+				esp_restart();
                         }
 		}
 
