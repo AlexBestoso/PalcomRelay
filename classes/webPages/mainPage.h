@@ -10,7 +10,7 @@ class MainPage : public WebPage{
 			if(!this->validateAuthCookie(authCookie)){
 				pc += "<h1>Palcom Relay Login</h1>";
 				pc += "<form method=\"POST\">";
-					pc += "<label>Usernmae: </label><input name=\"username\" type=\"text\" value=\"\" /><br>";
+					pc += "<label>Username: </label><input name=\"username\" type=\"text\" value=\"\" /><br>";
 					pc += "<label>Password: </label><input name=\"password\" type=\"password\" value=\"\" />";
 					pc += "<input name=\"login\" type=\"submit\" value=\"login\" />";
 				pc += "</form>";
@@ -114,6 +114,43 @@ class MainPage : public WebPage{
                         		                break;
                         		        }
                         		}
+				}else  if(httpPacket.uri == "/updateUser.pal"){
+					String currentPass = "";
+					String usr = "";
+					String newPass = "";
+					String confPass = "";
+					for(int i=0; i<httpPacket.post_len; i++){
+                                                if(httpPacket.post_key[i] == "currentPassword"){
+							currentPass = httpPacket.post_val[i];
+                                                }else if(httpPacket.post_key[i] == "username"){
+							usr = httpPacket.post_val[i];
+						}else if(httpPacket.post_key[i] == "newPassword"){
+							newPass = httpPacket.post_val[i];
+						}else if(httpPacket.post_key[i] = "confPassword"){
+							confPass = httpPacket.post_val[i];
+						}
+                                        }
+
+					if(currentPass == authFile.relayPassword){
+						PalcomFS pfs;
+                                		if(pfs.exists(pfs_relayAuth)){
+                                		        Serial.printf("Removing old setup file.\n");
+                                		        pfs.rm(pfs_relayAuth);
+                                		}
+
+                                		String data = authFile.ssid; data += "\n";
+                                		data += authFile.ssidPassword; data += "\n";
+                                		data += usr; data += "\n";
+						if(newPass != "" && (newPass == confPass)){
+							data += newPass; data += "\n";
+						}else{
+                                			data += authFile.relayPassword; data += "\n";
+						}
+
+                                		pfs.fd = SD.open(pfs_relayAuth, FILE_WRITE);
+                                		pfs.write((unsigned char *)data.c_str(), data.length());
+                                		pfs.close();
+					}
 				}
 			}
 
