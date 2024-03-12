@@ -147,13 +147,13 @@ class WebServer{
 							break;
 						}
 						if(c == '&'){
-							ret.post_val[ret.post_len] = sacrament;
+							ret.post_val[ret.post_len] = urlEncoding.decode((char *)sacrament.c_str(), sacrament.length());
 							ret.post_len++;
 							sacrament = "";
 							continue;
 						}
 						if(c == '='){
-							ret.post_key[ret.post_len] = sacrament;
+							ret.post_key[ret.post_len] = urlEncoding.decode((char *)sacrament.c_str(), sacrament.length());;
 							sacrament = "";
 							continue;
 						}

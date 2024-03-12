@@ -15,6 +15,32 @@ class MainPage : public WebPage{
 					pc += "<input name=\"login\" type=\"submit\" value=\"login\" />";
 				pc += "</form>";
 			}else{
+				RelayConfig rc;
+				PalcomFS pfs;
+				if(pfs.exists(pfs_relayConfig)){
+					pfs.fd = SD.open(pfs_relayConfig, FILE_READ);
+					size_t fSize = pfs.fd.size();
+					pfs.clearFileBuffer();
+					pfs.fd.read(fileData, fSize);
+					pfs.close();
+
+					int ctx = 0;
+					for(int i=0; i<fSize; i++){
+						if(ctx == 0){
+							if(fileData[i] == '\n'){
+								ctx = 1;
+								continue;
+							}
+							rc.relayIP += (char)fileData[i];
+						}else{
+							if(fileData[i] == '\n'){
+                                                                ctx = 1;
+                                                                break;
+                                                        }
+                                                        rc.relayPort += (char)fileData[i];
+						}
+					}
+				}
 				pc += "<h1>Palcom Relay Control Panel</h1>";
 				pc += "<table>";
 				pc += "<tr>";
@@ -37,8 +63,8 @@ class MainPage : public WebPage{
 						// relay configuration form
 						pc += "<h2>Relay Config</h2><br>";
 						pc += "<form action=\"updateConfig.pal\" method=\"POST\">";
-							pc += "<label>Relay IP: </label><input name=\"relayIP\" type=\"text\" value=\"\" /><br>";
-							pc += "<label>Relay Port: </label><input name=\"relayPort\" type=\"text\" value=\"\" /></br>";
+							pc += "<label>Relay IP: </label><input name=\"relayIP\" type=\"text\" value=\""; pc += rc.relayIP.c_str(); pc += "\" /><br>";
+							pc += "<label>Relay Port: </label><input name=\"relayPort\" type=\"text\" value=\""; pc += rc.relayPort.c_str(); pc += "\" /></br>";
 							pc += "<input type=\"submit\" value=\"Update\" name=\"updateRelay\" />";
 						pc += "</form><br /><hr /><br />";
 
@@ -151,6 +177,25 @@ class MainPage : public WebPage{
                                 		pfs.write((unsigned char *)data.c_str(), data.length());
                                 		pfs.close();
 					}
+				}else if(httpPacket.uri == "/updateConfig.pal"){
+					RelayConfig rc;
+					for(int i=0; i<httpPacket.post_len; i++){
+                                                if(httpPacket.post_key[i] == "relayIP"){
+                                                        rc.relayIP = httpPacket.post_val[i];
+                                                }else if(httpPacket.post_key[i] == "relayPort"){
+                                                        rc.relayPort = httpPacket.post_val[i];
+                                                }
+                                        }
+					PalcomFS pfs;
+					if(pfs.exists(pfs_relayConfig)){
+						pfs.rm(pfs_relayConfig);
+					}
+
+					String data = rc.relayIP; data += "\n";
+					data += rc.relayPort; data += "\n";
+					pfs.fd = SD.open(pfs_relayConfig, FILE_WRITE);
+                                        pfs.write((unsigned char *)data.c_str(), data.length());
+                                        pfs.close();
 				}
 			}
 
