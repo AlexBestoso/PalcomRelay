@@ -1,2 +1,3 @@
-# PalcomRelay
-Source code for a relay device used to enable internet connectivity for the Palcom Lora Phones
+# Palcom Rekay Node
+`Version 0.0.2`
+Source code for the palcom communication system's node middle points.

@@ -18,9 +18,6 @@ SPIClass sdSPI(VSPI);
 #define RELAY_CONTEXT_SETUP 0
 #define RELAY_CONTEXT_MAIN 1
 
-//const char *ssid = "LoRaSig";
-//const char *password = "LoRaSig!";
-
 // Custom Includes
 #include "./classes/classLinker.h"
 
@@ -58,14 +55,16 @@ void setup()
         display.drawString(display.getWidth() / 2, display.getHeight() / 2, "LoraRecv Ready");
         display.display();
     }*/
+   
 }
 
 int count = 0;
 
 void loop(){
+  palcomRelay.runLoRa();
   WiFiClient client = server.available();
   if(client)
-    palcomRelay.run(client);
+    palcomRelay.runWiFi(client);
 /*#if LORA_SENDER
     int32_t rssi;
     if (WiFi.status() == WL_CONNECTED) {

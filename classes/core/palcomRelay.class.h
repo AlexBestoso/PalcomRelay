@@ -2,6 +2,7 @@ class PalcomRelay{
 	private:
 		WebServer webServer;
 		AuthFile authFile;
+		PalcomLoRa loRa;
 		int context = RELAY_CONTEXT_SETUP;
 		/*
 		 * Checks for certain configuration files to determine if we should be
@@ -83,10 +84,27 @@ class PalcomRelay{
 				this->context = RELAY_CONTEXT_MAIN;
 			}
 
+			if(!loRa.setup()){
+				Serial.printf("Failed to setup the LoRa Chip\n");
+				while(1){delay(100);}
+			}
+
 			return true;
 		}
 
-		void run(WiFiClient client){
+		void runWiFi(WiFiClient client){
 			this->context = webServer.run(client, context);
+		}
+
+		void runLoRa(void){
+			switch(loRa.getContext()){
+				case PAL_LORA_CTX_LISTEN:
+					if(loRa.recv() != "")
+						loRa.DebugRecvBuf();
+					break;
+				default:
+					Serial.printf("Invalid LoRa Context\n");
+					delay(300);
+			}
 		}
 };
