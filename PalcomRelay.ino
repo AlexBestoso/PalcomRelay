@@ -1,98 +1,50 @@
+/*
+T3-S3 	Value
+Board 	ESP32S3 Dev Module
+Port 	Your port
+USB CDC On Boot 	Enable
+CPU Frequency 	240MHZ(WiFi)
+Core Debug Level 	None
+USB DFU On Boot 	Disable
+Erase All Flash Before Sketch Upload 	Disable
+Events Run On 	Core1
+Flash Mode 	QIO 80MHZ
+Flash Size 	4MB(32Mb)
+Arduino Runs On 	Core1
+USB Firmware MSC On Boot 	Disable
+Partition Scheme 	Default 4M Flash with spiffs(1.2M APP/1.5MB SPIFFS)
+PSRAM 	QSPI PSRAM
+Upload Mode 	UART0/Hardware CDC
+Upload Speed 	921600
+USB Mode 	CDC and JTAG
+Programmer 	Esptool
+*/
+
 // System includes
 #include <SPI.h>
 #include <LoRa.h>
 #include "./ds3231.h"
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WiFiAP.h>
 #include <SD.h>
 #include <string.h>
 #include <string>
 
+
 // Global Variables
-OLED_CLASS_OBJ display(OLED_ADDRESS, OLED_SDA, OLED_SCL);
-WiFiServer server(80);
-SPIClass sdSPI(VSPI);
-#define WIFI_SSID       "Morning Star"
-#define WIFI_PASSWORD   "Bnddff6&"
-#define RELAY_CONTEXT_SETUP 0
-#define RELAY_CONTEXT_MAIN 1
+OLED_CLASS_OBJ display(OLED_ADDRESS, 18, 17);
+
+SPIClass sdSPI(SPI);
 
 // Custom Includes
 #include "./classes/classLinker.h"
 
 PalcomRelay palcomRelay;
 
-void setup()
-{
+void setup(void){
   palcomRelay.setup();
-    /*WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        display.clear();
-        Serial.println("WiFi Connect Fail");
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "WiFi Connect Fail");
-        display.display();
-        delay(2000);
-        esp_restart();
-    }
-    Serial.print("Connected : ");
-    Serial.println(WiFi.SSID());
-    Serial.print("IP:");
-    Serial.println(WiFi.localIP().toString());
-    display.clear();
-    display.drawString(display.getWidth() / 2, display.getHeight() / 2, "IP:" + WiFi.localIP().toString());
-    display.display();
-    delay(2000);
-
-    SPI.begin(CONFIG_CLK, CONFIG_MISO, CONFIG_MOSI, CONFIG_NSS);
-    LoRa.setPins(CONFIG_NSS, CONFIG_RST, CONFIG_DIO0);
-    if (!LoRa.begin(BAND)) {
-        Serial.println("Starting LoRa failed!");
-        while (1);
-    }
-    if (!LORA_SENDER) {
-        display.clear();
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "LoraRecv Ready");
-        display.display();
-    }*/
    
 }
 
-int count = 0;
 
-void loop(){
-  palcomRelay.runLoRa();
-  WiFiClient client = server.available();
-  if(client)
-    palcomRelay.runWiFi(client);
-/*#if LORA_SENDER
-    int32_t rssi;
-    if (WiFi.status() == WL_CONNECTED) {
-        rssi = WiFi.RSSI();
-        display.clear();
-        display.setTextAlignment(TEXT_ALIGN_CENTER);
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Send RSSI:" + String(rssi));
-        display.display();
-        LoRa.beginPacket();
-        LoRa.print("WiFi RSSI: ");
-        LoRa.print(rssi);
-        LoRa.endPacket();
-    } else {
-        Serial.println("WiFi Connect lost ...");
-    }
-    delay(2500);
-#else
-    if (LoRa.parsePacket()) {
-        String recv = "";
-        while (LoRa.available()) {
-            recv += (char)LoRa.read();
-        }
-        count++;
-        display.clear();
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, recv);
-        String info = "[" + String(count) + "]" + "RSSI " + String(LoRa.packetRssi());
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2 - 16, info);
-        display.display();
-    }
-#endif*/
+void loop(void){
+
 }
