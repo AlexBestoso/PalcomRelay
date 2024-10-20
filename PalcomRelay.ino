@@ -27,17 +27,35 @@ Programmer 	Esptool
 #include <SD.h>
 #include <string.h>
 #include <string>
+#include "USB.h"
 
 
 // Global Variables
+#define RELAY_MODE_DISABLED 0
+int relayMode = RELAY_MODE_DISABLED;
+
 OLED_CLASS_OBJ display(OLED_ADDRESS, 18, 17);
 
 SPIClass sdSPI(SPI);
+
+#if !ARDUINO_USB_CDC_ON_BOOT
+USBCDC USBSerial;
+#endif
+
+
 
 // Custom Includes
 #include "./classes/classLinker.h"
 
 PalcomRelay palcomRelay;
+
+void debug(){
+  Serial.printf("Received packet: [%d] ", loraSnake.lrsPacket.data_size);
+    for(int i=0; i<loraSnake.lrsPacket.data_size; i++){
+      Serial.printf("%c", loraSnake.lrsPacket.data[i]);
+    }
+    Serial.printf("\n");
+}
 
 void setup(void){
   palcomRelay.setup();
@@ -46,5 +64,9 @@ void setup(void){
 
 
 void loop(void){
-
+  if(palcomRelay.fetchPacket()){
+    palcomRelay.executeRelay(relayMode);
+  }
+  delay(1000);
+  
 }

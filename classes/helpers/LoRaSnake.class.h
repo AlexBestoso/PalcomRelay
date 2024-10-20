@@ -142,8 +142,14 @@ class LoRaSnake{
     }
 
     bool send(uint8_t *d, size_t s){
-      sendStart(d, s);
-      delay(250);
+	if(running)
+		listenStop();
+	if(s >= 256)
+		s = 255;
+
+      	sendStart(d, s);
+	int efficency = (8 *  s) < 333 ? 333 : (8 *  s);
+      	delay(efficency);
       
       if(txState == RADIOLIB_ERR_NONE){
           sendStop();
