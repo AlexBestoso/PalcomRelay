@@ -31,7 +31,12 @@ Programmer 	Esptool
 
 
 // Global Variables
+
 #define RELAY_MODE_DISABLED 0
+#define RELAY_MODE_REPEAT 1
+#define RELAY_MODE_START RELAY_MODE_DISABLED
+#define RELAY_MODE_END RELAY_MODE_REPEAT
+
 int relayMode = RELAY_MODE_DISABLED;
 
 OLED_CLASS_OBJ display(OLED_ADDRESS, 18, 17);
@@ -59,7 +64,17 @@ void debug(){
 
 void setup(void){
   palcomRelay.setup();
-   
+  PalcomPartition pp;
+  palcom_partition_t pt;
+  pp.read(&pt);
+
+  if(pt.mode >= RELAY_MODE_START && pt.mode <= RELAY_MODE_END){
+    relayMode = pt.mode;
+  }else{
+    relayMode = RELAY_MODE_DISABLED;
+    pt.mode = relayMode;
+    pp.write(pt);
+  }
 }
 
 

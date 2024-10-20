@@ -92,15 +92,22 @@ class LoRaSnake{
 
     bool listenStart(void){
       int s = this->_radio.startReceive();
+	delay(500);
       if (s == RADIOLIB_ERR_NONE){
         running = true;
         return true;
-      }
+      }else{
+		running = false;
+	}
       return false;
     }
 
     int readRecv(void){
-      if(loraSnakeReceive){
+	if(!running){
+	loraSnakeReceive = false;
+        this->listenStart();
+        return 0;
+      }else if(loraSnakeReceive){
         loraSnakeReceive = false;
         lrsPacket.data_size = this->_radio.getPacketLength();
         this->rxState = this->_radio.readData(lrsPacket.data, lrsPacket.data_size);
@@ -114,12 +121,9 @@ class LoRaSnake{
           //Serial.printf("Malformed packet received.");
           return 2; // malformed packet
         }else{
-          Serial.printf("Unknown Error");
+          //Serial.printf("Unknown Error");
           return 0; // unknown error
         }
-      }else if(!running){
-        this->listenStart();
-        return 0;
       }else{
         return 0;
       }
@@ -142,8 +146,9 @@ class LoRaSnake{
     }
 
     bool send(uint8_t *d, size_t s){
-	if(running)
+	if(running){
 		listenStop();
+	}
 	if(s >= 256)
 		s = 255;
 
@@ -159,7 +164,6 @@ class LoRaSnake{
         }
         loraSnakeTransmit = false;
         sendStop();
-        
       
       return false;
     }

@@ -4,23 +4,72 @@
 
 LoRaSnake loraSnake; 
 
+#define RELAY_CMD_MODE 0
+
+static int getCommandId(String cmd){
+	String grabber = "";
+	for(int i=0; i<cmd.length(); i++){
+		grabber += cmd[i];
+		if(grabber == "mode "){
+			return RELAY_CMD_MODE;
+		}
+	}
+	return -1;
+}
+
+static void relayCmd_mode(String cmd){
+	String grabber = "";
+	for(int i=5; i<cmd.length(); i++)
+		grabber += cmd[i];
+
+	PalcomPartition pp;
+	palcom_partition_t pt;
+	if(grabber == "disable"){
+		Serial.printf("Disabling relay...\n");
+		if(!pp.read(&pt)){
+			Serial.printf("Failed to read from flash.\n");
+		}
+		pt.mode = RELAY_MODE_DISABLED;
+		if(!pp.write(pt)){
+			Serial.printf("Failed to write to flash.\n");
+			return;
+		}
+		relayMode = pt.mode;
+	}else if(grabber == "repeat"){
+		Serial.printf("Enabling repeater mode...\n");
+		if(!pp.read(&pt)){
+			Serial.printf("Failed to read from flash.\n");
+		}
+                pt.mode = RELAY_MODE_REPEAT;
+                if(!pp.write(pt)){
+			Serial.printf("Failed to write to flash.\n");
+			return;
+		}
+		relayMode = pt.mode;
+	}else{
+		Serial.printf("Invalid relay mode\n");
+	}
+}
+
 static void runSerialCommand(uint8_t *buf, size_t bufSize){
-  if(bufSize <= 4){
-    // Invalid command size
-    Serial.printf("Invalid command size\n");
-    return;
-  }else if(buf[0] != 'C' && buf[1] != 'M' && buf[2] != 'D' && buf[3] != ' '){
-    // invalid command structure
-    Serial.printf("Invalid command structure\n");
-    return;
-  }
+  	if(bufSize <= 4){
+    		// Invalid command size
+    		return;
+  	}else if(buf[0] != 'C' && buf[1] != 'M' && buf[2] != 'D' && buf[3] != ' '){
+    		// invalid command structure
+    		return;
+  	}
 
-  Serial.printf("Executing command [%ld] : ", bufSize);
-  String cmd = "";
-  for(int i=4; i<bufSize; i++)
-    Serial.printf("%c", buf[i]);
-	Serial.printf("\n");
-
+  	String cmd = "";
+  	for(int i=4; i<bufSize; i++){
+		cmd += (char)buf[i];
+	}
+	
+	switch(getCommandId(cmd)){
+		case RELAY_CMD_MODE:
+			relayCmd_mode(cmd);
+		break;
+	}
 }
 
 static void usbEventCallback(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
@@ -65,22 +114,43 @@ static void usbEventCallback(void *arg, esp_event_base_t event_base, int32_t eve
 
 class PalcomRelay{
 	private:
-		String msg = "";
-		
+		size_t msg_max = 256;
+		uint8_t msg[256] = {0};
+		size_t msg_size = 0;		
+
+		void clearMsg(int full=1){
+			for(int i=0; i<msg_max; i++){
+				msg[i] = 0;
+				if(full == 1)
+				loraSnake.lrsPacket.data[i] = 0;
+			}
+			if(full == 1)
+			loraSnake.lrsPacket.data_size = 0;
+			msg_size = 0;
+		}
+
 		bool parseMessage(void){
 			size_t s = loraSnake.lrsPacket.data_size;
 			uint8_t *d = loraSnake.lrsPacket.data;
 			
-			if(s <= 4 || s >= 255)
+			if(s <= 4 || s >= 256){
+				clearMsg();
 				return false;
+			}
 
-			if(d[0] != 'L' && d[1] != 'A' && d[2] != 'P' && d[4] != ' '){
+			if(d[0] != 'L' && d[1] != 'A' && d[2] != 'P' && d[3] != ' '){
+				clearMsg();
 				return false;
 			}
 			
-			msg = "";
-			for(int i=5; i<s; i++){
-				msg += (char)d[i];
+			clearMsg(0);
+			msg[0] = 'P';
+			msg[1] = 'A';
+			msg[2] = 'L';
+			msg[3] = ' ';
+			msg_size = s;
+			for(int i=4; i<s; i++){
+				msg[i] = d[i];
 			}
 
 			return true;
@@ -151,17 +221,15 @@ class PalcomRelay{
     			display.display();
     			delay(2000);
 			
-		//	USB.onEvent(usbEventCallback);
 			USBSerial.onEvent(usbEventCallback);
-
-		//	USB.begin();
 			USBSerial.begin();
 			return true;
 		}
 
 		bool fetchPacket(void){
-			bool ret = loraSnake.readRecv() == 0 ? false : true;
-			if(!ret)
+			int v = loraSnake.readRecv();
+			bool ret = v == 0 ? false : true;
+			if(!ret || loraSnake.lrsPacket.data_size <= 0 || v == 2)
 				return false;
 
 			if(!parseMessage()){
@@ -171,10 +239,25 @@ class PalcomRelay{
 		}
 
 		bool executeRelay(int mode){
+			bool ret = false;
 			switch(mode){
+				case RELAY_MODE_REPEAT:
+					Serial.printf("LOG repeating message: [%ld]\n", msg_size);
+					ret = loraSnake.send(msg, msg_size);
+					if(!ret){
+						Serial.printf("Failed to relay message...\n");
+					}else{
+						Serial.printf("Sent...\n");
+					}
+					clearMsg();
+					return ret;
+				break;
 				default: // RELAY_MODE_DISABLED
 					Serial.printf("LOG Relay is disabled.\n");
+					clearMsg();
 					return true;
 			}
+			
+			return false;
 		}
 };		
