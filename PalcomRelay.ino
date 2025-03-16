@@ -1,99 +1,87 @@
+/*
+T3-S3 	Value
+Board 	ESP32S3 Dev Module
+Port 	Your port
+USB CDC On Boot 	Enable
+CPU Frequency 	240MHZ(WiFi)
+Core Debug Level 	None
+USB DFU On Boot 	Disable
+Erase All Flash Before Sketch Upload 	Disable
+Events Run On 	Core1
+Flash Mode 	QIO 80MHZ
+Flash Size 	4MB(32Mb)
+Arduino Runs On 	Core1
+USB Firmware MSC On Boot 	Disable
+Partition Scheme 	Default 4M Flash with spiffs(1.2M APP/1.5MB SPIFFS)
+PSRAM 	QSPI PSRAM
+Upload Mode 	UART0/Hardware CDC
+Upload Speed 	921600
+USB Mode 	CDC and JTAG
+Programmer 	Esptool
+*/
+
 // System includes
 #include <SPI.h>
 #include <LoRa.h>
 #include "./ds3231.h"
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WiFiAP.h>
 #include <SD.h>
 #include <string.h>
 #include <string>
+#include "USB.h"
+
 
 // Global Variables
-OLED_CLASS_OBJ display(OLED_ADDRESS, OLED_SDA, OLED_SCL);
-WiFiServer server(80);
-SPIClass sdSPI(VSPI);
-#define WIFI_SSID       "Morning Star"
-#define WIFI_PASSWORD   "Bnddff6&"
-#define RELAY_CONTEXT_SETUP 0
-#define RELAY_CONTEXT_MAIN 1
 
-//const char *ssid = "LoRaSig";
-//const char *password = "LoRaSig!";
+#define RELAY_MODE_DISABLED 0
+#define RELAY_MODE_REPEAT 1
+#define RELAY_MODE_START RELAY_MODE_DISABLED
+#define RELAY_MODE_END RELAY_MODE_REPEAT
+
+int relayMode = RELAY_MODE_DISABLED;
+
+OLED_CLASS_OBJ display(OLED_ADDRESS, 18, 17);
+
+SPIClass sdSPI(SPI);
+
+#if !ARDUINO_USB_CDC_ON_BOOT
+USBCDC USBSerial;
+#endif
+
+
 
 // Custom Includes
 #include "./classes/classLinker.h"
 
 PalcomRelay palcomRelay;
 
-void setup()
-{
-  palcomRelay.setup();
-    /*WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        display.clear();
-        Serial.println("WiFi Connect Fail");
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "WiFi Connect Fail");
-        display.display();
-        delay(2000);
-        esp_restart();
+void debug(){
+  Serial.printf("Received packet: [%d] ", loraSnake.lrsPacket.data_size);
+    for(int i=0; i<loraSnake.lrsPacket.data_size; i++){
+      Serial.printf("%c", loraSnake.lrsPacket.data[i]);
     }
-    Serial.print("Connected : ");
-    Serial.println(WiFi.SSID());
-    Serial.print("IP:");
-    Serial.println(WiFi.localIP().toString());
-    display.clear();
-    display.drawString(display.getWidth() / 2, display.getHeight() / 2, "IP:" + WiFi.localIP().toString());
-    display.display();
-    delay(2000);
-
-    SPI.begin(CONFIG_CLK, CONFIG_MISO, CONFIG_MOSI, CONFIG_NSS);
-    LoRa.setPins(CONFIG_NSS, CONFIG_RST, CONFIG_DIO0);
-    if (!LoRa.begin(BAND)) {
-        Serial.println("Starting LoRa failed!");
-        while (1);
-    }
-    if (!LORA_SENDER) {
-        display.clear();
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "LoraRecv Ready");
-        display.display();
-    }*/
+    Serial.printf("\n");
 }
 
-int count = 0;
+void setup(void){
+  palcomRelay.setup();
+  PalcomPartition pp;
+  palcom_partition_t pt;
+  pp.read(&pt);
 
-void loop(){
-  WiFiClient client = server.available();
-  if(client)
-    palcomRelay.run(client);
-/*#if LORA_SENDER
-    int32_t rssi;
-    if (WiFi.status() == WL_CONNECTED) {
-        rssi = WiFi.RSSI();
-        display.clear();
-        display.setTextAlignment(TEXT_ALIGN_CENTER);
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Send RSSI:" + String(rssi));
-        display.display();
-        LoRa.beginPacket();
-        LoRa.print("WiFi RSSI: ");
-        LoRa.print(rssi);
-        LoRa.endPacket();
-    } else {
-        Serial.println("WiFi Connect lost ...");
-    }
-    delay(2500);
-#else
-    if (LoRa.parsePacket()) {
-        String recv = "";
-        while (LoRa.available()) {
-            recv += (char)LoRa.read();
-        }
-        count++;
-        display.clear();
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2, recv);
-        String info = "[" + String(count) + "]" + "RSSI " + String(LoRa.packetRssi());
-        display.drawString(display.getWidth() / 2, display.getHeight() / 2 - 16, info);
-        display.display();
-    }
-#endif*/
+  if(pt.mode >= RELAY_MODE_START && pt.mode <= RELAY_MODE_END){
+    relayMode = pt.mode;
+  }else{
+    relayMode = RELAY_MODE_DISABLED;
+    pt.mode = relayMode;
+    pp.write(pt);
+  }
+}
+
+
+void loop(void){
+  if(palcomRelay.fetchPacket()){
+    palcomRelay.executeRelay(relayMode);
+  }
+  delay(1000);
+  
 }
