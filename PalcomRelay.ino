@@ -29,6 +29,8 @@ Programmer 	Esptool
 #include <string>
 #include "USB.h"
 
+#include <src/error/error.h>
+
 
 // Global Variables
 
@@ -63,17 +65,24 @@ void debug(){
 }
 
 void setup(void){
-  palcomRelay.setup();
-  PalcomPartition pp;
-  palcom_partition_t pt;
-  pp.read(&pt);
+  try{
+  
+    palcomRelay.setup();
+    PalcomPartition pp;
+    palcom_partition_t pt;
+    pp.read(&pt);
 
-  if(pt.mode >= RELAY_MODE_START && pt.mode <= RELAY_MODE_END){
-    relayMode = pt.mode;
-  }else{
-    relayMode = RELAY_MODE_DISABLED;
-    pt.mode = relayMode;
-    pp.write(pt);
+    if(pt.mode >= RELAY_MODE_START && pt.mode <= RELAY_MODE_END){
+      relayMode = pt.mode;
+    }else{
+      relayMode = RELAY_MODE_DISABLED;
+      pt.mode = relayMode;
+      pp.write(pt);
+    }
+
+  }catch(CoreException &e){
+    e.out();
+    e.halt();
   }
 }
 
