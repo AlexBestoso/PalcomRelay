@@ -34,6 +34,10 @@ Programmer 	Esptool
 int relayMode = 0; // RELAY_MODE_DISABLED
 
 #include <src/error/error.h>
+
+#include <src/taskQueue/taskQueue.h>
+TaskQueue taskQueue;
+
 //#include <src/partition/partition.h>
 #include <usbEventCallback.h> // <-- partition is included in here.
 
@@ -60,37 +64,29 @@ SX1262 _radio = new Module(7, 33, 8, 34);
 #include <src/LoRaSnake/LoRaSnake.class.h>
 LoRaSnake loraSnake;
 
-// Custom Includes
+// Core Includes
+#include <src/core/graphics/graphics.h>
 #include <src/init/init.h>
 #include "./classes/classLinker.h"
 
+#include <src/core/core.h>
+PalcomCore core;
+
 PalcomRelay palcomRelay;
 
-void debug(){
+/*void debug(){
   Serial.printf("Received packet: [%d] ", loraSnake.lrsPacket.data_size);
     for(int i=0; i<loraSnake.lrsPacket.data_size; i++){
       Serial.printf("%c", loraSnake.lrsPacket.data[i]);
     }
     Serial.printf("\n");
-}
+}*/
 
 
 
 void setup(void){
   try{
-    PalcomInit initer;
-
-    initer.initSerial();
-    Serial.printf("Initalized Serial interface.\n");
-    initer.initRadio();
-    initer.initDisplay();
-    initer.initUsb();
-    initer.initSettings();
-
-
-    
-
-    Serial.printf("Setup Success!\n");
+    core.startCore();
 
   }catch(CoreException &e){
     e.out();
@@ -100,9 +96,10 @@ void setup(void){
 
 
 void loop(void){
-  if(palcomRelay.fetchPacket()){
+  core.driveCore();
+  /*if(palcomRelay.fetchPacket()){
     palcomRelay.executeRelay(relayMode);
-  }
+  }*/
   delay(1000);
   
 }
