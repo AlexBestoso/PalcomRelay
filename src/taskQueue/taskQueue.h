@@ -48,6 +48,7 @@ class TaskQueue{
 		void exec(void);
 		void clear(void);
 		int getTaskCount(void);
+		struct task_queue_task *getTaskContainer(void);
 
 		struct task_queue_task buildTask(uint8_t to, uint8_t from, uint8_t instruction);
 		struct task_queue_task buildTask(uint8_t to, uint8_t from, uint8_t instruction, uint8_t msg[256]); 

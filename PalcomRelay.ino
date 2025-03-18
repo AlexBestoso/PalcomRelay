@@ -36,7 +36,7 @@ int relayMode = 0; // RELAY_MODE_DISABLED
 #include <src/error/error.h>
 
 #include <src/taskQueue/taskQueue.h>
-
+TaskQueue taskQueue;
 
 //#include <src/partition/partition.h>
 #include <usbEventCallback.h> // <-- partition is included in here.
@@ -65,6 +65,7 @@ SX1262 _radio = new Module(7, 33, 8, 34);
 LoRaSnake loraSnake;
 
 // Core Includes
+#include <src/core/graphics/graphics.h>
 #include <src/init/init.h>
 #include "./classes/classLinker.h"
 
@@ -86,7 +87,6 @@ PalcomRelay palcomRelay;
 void setup(void){
   try{
     core.startCore();
-    Serial.printf("Setup Success!\n");
 
   }catch(CoreException &e){
     e.out();
@@ -96,9 +96,10 @@ void setup(void){
 
 
 void loop(void){
-  if(palcomRelay.fetchPacket()){
+  core.driveCore();
+  /*if(palcomRelay.fetchPacket()){
     palcomRelay.executeRelay(relayMode);
-  }
+  }*/
   delay(1000);
   
 }

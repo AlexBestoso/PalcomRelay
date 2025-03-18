@@ -132,6 +132,11 @@ bool TaskQueue::mine(int spaceID){
 	return (this->tasks[0].to == spaceID);
 }
 
+
+struct task_queue_task *TaskQueue::getTaskContainer(void){
+	return this->tasks;
+}
+
 struct task_queue_task TaskQueue::buildTask(uint8_t to, uint8_t from, uint8_t instruction){
 	struct task_queue_task ret;
 	ret.active = true;

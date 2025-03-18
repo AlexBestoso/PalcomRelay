@@ -60,7 +60,7 @@ void PalcomInit::initDisplay(void){
 	}
 
 	display.clear();
-	display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Palnode");
+	display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Starting...");
 	display.display();
 	delay(2000);
 }
