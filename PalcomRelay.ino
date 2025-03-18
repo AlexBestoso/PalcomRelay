@@ -23,23 +23,28 @@ Programmer 	Esptool
 // System includes
 #include <SPI.h>
 #include <LoRa.h>
-#include "./ds3231.h"
+#include <ds3231.h>
 #include <SD.h>
 #include <string.h>
 #include <string>
-#include "USB.h"
+#include <USB.h>
+#include <RadioLib.h>
+
+
+int relayMode = 0; // RELAY_MODE_DISABLED
 
 #include <src/error/error.h>
+//#include <src/partition/partition.h>
+#include <usbEventCallback.h> // <-- partition is included in here.
+
+
 
 
 // Global Variables
 
-#define RELAY_MODE_DISABLED 0
-#define RELAY_MODE_REPEAT 1
-#define RELAY_MODE_START RELAY_MODE_DISABLED
-#define RELAY_MODE_END RELAY_MODE_REPEAT
 
-int relayMode = RELAY_MODE_DISABLED;
+
+
 
 OLED_CLASS_OBJ display(OLED_ADDRESS, 18, 17);
 
@@ -49,9 +54,14 @@ SPIClass sdSPI(SPI);
 USBCDC USBSerial;
 #endif
 
-
+bool loraSnakeTransmit = false;
+bool loraSnakeReceive = false;
+SX1262 _radio = new Module(7, 33, 8, 34);
+#include <src/LoRaSnake/LoRaSnake.class.h>
+LoRaSnake loraSnake;
 
 // Custom Includes
+#include <src/init/init.h>
 #include "./classes/classLinker.h"
 
 PalcomRelay palcomRelay;
@@ -64,21 +74,23 @@ void debug(){
     Serial.printf("\n");
 }
 
+
+
 void setup(void){
   try{
-  
-    palcomRelay.setup();
-    PalcomPartition pp;
-    palcom_partition_t pt;
-    pp.read(&pt);
+    PalcomInit initer;
 
-    if(pt.mode >= RELAY_MODE_START && pt.mode <= RELAY_MODE_END){
-      relayMode = pt.mode;
-    }else{
-      relayMode = RELAY_MODE_DISABLED;
-      pt.mode = relayMode;
-      pp.write(pt);
-    }
+    initer.initSerial();
+    Serial.printf("Initalized Serial interface.\n");
+    initer.initRadio();
+    initer.initDisplay();
+    initer.initUsb();
+    initer.initSettings();
+
+
+    
+
+    Serial.printf("Setup Success!\n");
 
   }catch(CoreException &e){
     e.out();

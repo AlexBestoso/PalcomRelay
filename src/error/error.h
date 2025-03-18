@@ -13,6 +13,9 @@
 
 #define CORE_ERR_DEBUG 0x000
 #define ERR_DEBUG_TEST (CORE_ERR_DEBUG + 0x1)
+
+#define CORE_ERR_INIT 0x300
+#define ERR_INIT_LORA (CORE_ERR_INIT + 0x01)
 class CoreException : public std::exception{
         private:
                 String errorMessage;

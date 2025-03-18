@@ -54,6 +54,10 @@ const char *CoreException::codeTranslate(void){
 			return "CORE_ERR_DEBUG";
 		case ERR_DEBUG_TEST:
 			return "ERR_DEBUG_TEST";
+		case CORE_ERR_INIT:
+			return "CORE_ERR_INIT";
+		case ERR_INIT_LORA:
+			return "ERR_INIT_LORA";
 	}
 	return "ERR_UNKNOWN";
 }
