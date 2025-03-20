@@ -4,6 +4,7 @@
 #include <src/taskQueue/taskQueue.h>
 #include <src/init/init.h>
 #include <src/core/graphics/graphics.h>
+#include <src/core/comms/comms.h>
 
 
 #include "./core.h"
@@ -27,7 +28,15 @@ void PalcomCore::startCore(void){
 
 void PalcomCore::driveCore(void){
 	if(this->subCoreGraphics.fetchTask()){
-		Serial.printf("Debug : Foun a task that's mine!\n");
 		this->subCoreGraphics.runTask();
 	}
+
+	// comms core
+	if(this->subCoreComms.fetchTask()){
+		this->subCoreComms.runTask();
+	}	
+
+	// storage core
+
+	// usb core ? 
 }

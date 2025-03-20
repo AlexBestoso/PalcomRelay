@@ -66,6 +66,7 @@ LoRaSnake loraSnake;
 
 // Core Includes
 #include <src/core/graphics/graphics.h>
+#include <src/core/comms/comms.h>
 #include <src/init/init.h>
 #include "./classes/classLinker.h"
 
