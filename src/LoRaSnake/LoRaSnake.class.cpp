@@ -1,10 +1,10 @@
-//#include <src/taskQueue/taskQueue.h>
+#include <src/taskQueue/taskQueue.h>
 #include "./LoRaSnake.class.h"
 
 extern bool loraSnakeTransmit;
 extern bool loraSnakeReceive;
 extern SX1262 _radio;
-//extern TaskQueue taskQueue;
+extern TaskQueue taskQueue;
 
 static void loraSnakeSetTxFlag(void){
   	loraSnakeTransmit = true;
@@ -12,7 +12,7 @@ static void loraSnakeSetTxFlag(void){
 
 static void loraSnakeSetRxFlag(void){
   	loraSnakeReceive = true;
-//	taskQueue.push(taskQueue.buildTask(TASK_SPACE_COMMS, TASK_SPACE_COMMS, COMMS_INSTR_RECV));
+	taskQueue.push(taskQueue.buildTask(TASK_SPACE_COMMS, TASK_SPACE_COMMS, COMMS_INSTR_RECV));
 }
 
 // Private
