@@ -24,7 +24,10 @@ class CoreException : public std::exception{
                 uint32_t _errorCode;
         public:
                 CoreException(String msg, uint8_t errorCode);
+                CoreException(String fName, String msg, uint8_t errorCode);
 		CoreException(String msg, String classN, String funcN, uint8_t errorCode);
+
+		void setClassName(const char *name);
 
                 String what(void);
 		String where(void);

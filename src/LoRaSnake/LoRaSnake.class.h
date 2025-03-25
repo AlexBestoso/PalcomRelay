@@ -9,12 +9,13 @@
 //#define LORA_SNAKE_BOARD LORA_SNAKE_BOARD_TDECK
 #define LORA_SNAKE_BOARD LORA_SNAKE_BOARD_T3S3
 
+#define LORA_SNAKE_MAX_BUFFER 256
 
 static void loraSnakeSetTxFlag(void);
 static void loraSnakeSetRxFlag(void);
 
 struct LoRaSnakePacket{
-  	uint8_t data[256] = {0};
+  	uint8_t data[LORA_SNAKE_MAX_BUFFER] = {0};
   	size_t data_size = 0;
   	float rssi = 0.0;
   	float snr = 0.0;

@@ -9,6 +9,12 @@ CoreException::CoreException(String msg, uint8_t errorCode){
 	this->_errorCode = errorCode;
 }
 
+CoreException::CoreException(String fName, String msg, uint8_t errorCode){
+	this->errorMessage = msg;
+	this->_errorCode = errorCode;
+	this->functionName = fName;
+}
+
 CoreException::CoreException(String msg, String classN, String funcN, uint8_t errorCode){
 	this->errorMessage = msg;
         this->className = classN;
@@ -75,4 +81,8 @@ void CoreException::halt(void){
 
 void CoreException::log(void){
 	Serial.printf("Log Not implemented.\n");
+}
+
+void CoreException::setClassName(const char *name){
+	this->className = name;
 }

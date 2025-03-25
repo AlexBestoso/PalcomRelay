@@ -1,5 +1,5 @@
 # Palcom Relay Node
-`Version 1.0.2 alpha`
+`Version 1.0.3 alpha`
 Source code for the palcom communication system's node middle points.
 
 <h2>Updates for this version</h2>
@@ -13,6 +13,7 @@ Source code for the palcom communication system's node middle points.
 
 <h3>Todo:</h3>
 <ul>
+<li>Implement the remaining AES functions and begin integration.</li>
 <li>Build out threads/Xtasks for each of the sub cores.</li>
 <li>Build out SD card initalization.</li>
 </ul>
