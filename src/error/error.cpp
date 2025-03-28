@@ -73,8 +73,8 @@ void CoreException::out(void){
 }
 
 void CoreException::halt(void){
+	this->out();
 	while(1){
-		this->out();
 		delay(1000);
 	}
 }

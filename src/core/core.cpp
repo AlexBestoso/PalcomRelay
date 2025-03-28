@@ -41,30 +41,56 @@ void PalcomCore::startCore(void){
 
 void PalcomCore::driveCore(void){
 	try{
-		this->cryptography->setAesMode(CRYPTOGRAPHY_AES_MODE_OFB);
-		this->cryptography->setAesKey((uint8_t *)&CORE_ROUTING_KEY, CORE_ROUTING_KEY_SIZE, NULL, CORE_ROUTING_KEY_SIZE);
+		uint8_t keyA[32], keyB[32];
+		for(int i=0; i<16; i++){
+			keyA[i] = CORE_ROUTING_KEY[i];
+			keyB[i] = CORE_ROUTING_KEY[i];
+		}
+		this->cryptography->setAesMode(CRYPTOGRAPHY_AES_MODE_CTR);
+		this->cryptography->setAesKey((uint8_t *)&keyA, 16, (uint8_t *)&keyB, 16);
 		unsigned char get[16] = {0};
 		unsigned char iv[16] = {0};
+		unsigned char Nonce[16] = {0};
+		unsigned char streamBlock[16] = {0};
+		
 		String mgs = "my butthole itch";
 		String ivs = "1234567891234567";
-		for(int i=0; i<16; i++)
+		for(int i=0; i<16; i++){
 			iv[i] = ivs[i];
+			Nonce[i] = 0;
+			streamBlock[i] = 0;
+		}
 
 		
 		this->cryptography->setAesIv(iv, 16);
 		this->cryptography->setState((uint8_t *)mgs.c_str(), 16);
 		mgs = "";
 
+		this->cryptography->setAesNonce(Nonce, 16, 0);
+		this->cryptography->setAesStreamBlock(streamBlock, 16);
 		this->cryptography->aesEncrypt((unsigned char *)&get);	
 		
 		Serial.printf("enc get : ");
 		for(int i=0; i<16; i++) Serial.printf("%c ", get[i]);
 		Serial.printf("\n");
+		
+		for(int i=0; i<CORE_ROUTING_KEY_SIZE; i++){
+                        keyA[i] = CORE_ROUTING_KEY[i];
+                        keyB[i] = CORE_ROUTING_KEY[i];
+                }
 
-		this->cryptography->setAesKey((uint8_t *)&CORE_ROUTING_KEY, CORE_ROUTING_KEY_SIZE, NULL, CORE_ROUTING_KEY_SIZE);
+		this->cryptography->setAesKey((uint8_t *)&keyA, 16, (uint8_t *)&keyB, 16);
 		this->cryptography->setState(get, 16);
-		for(int i=0; i<16; i++)
-                        iv[i] = ivs[i];
+
+		for(int i=0; i<16; i++){
+			iv[i] = ivs[i];
+			Nonce[i] = 0;
+			streamBlock[i] = 0;
+		}
+
+		this->cryptography->setAesNonce(Nonce, 16, 0);
+		this->cryptography->setAesStreamBlock(streamBlock, 16);
+
 		this->cryptography->setAesIv(iv, 16);
 		this->cryptography->aesDecrypt((unsigned char *)&get);
 
