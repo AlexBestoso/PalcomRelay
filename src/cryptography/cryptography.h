@@ -8,6 +8,7 @@
 #define CRYPTOGRAPHY_AES_MODE_XTS 1
 #define CRYPTOGRAPHY_AES_MODE_OFB 2
 #define CRYPTOGRAPHY_AES_MODE_CTR 3
+#define CRYPTOGRAPHY_AES_MODE_ECB 4
 
 #include <src/cryptography/aes/aes.h>
 

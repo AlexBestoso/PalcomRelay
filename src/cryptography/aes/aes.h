@@ -8,6 +8,7 @@
 #define CRYPTOGRAPHY_AES_MODE_XTS 1
 #define CRYPTOGRAPHY_AES_MODE_OFB 2
 #define CRYPTOGRAPHY_AES_MODE_CTR 3
+#define CRYPTOGRAPHY_AES_MODE_ECB 4
 
 class PalcomAes{
 	private:
@@ -68,8 +69,9 @@ class PalcomAes{
 		void encrypt_ctr(unsigned char *out);
 		void decrypt_ctr(unsigned char *out);
 
+		void encrypt_ecb(unsigned char *out);
+		void decrypt_ecb(unsigned char *out);
 		// mbedtls_aes_crypt_ecb
-		// mbedtls_aes_crypt_ctr
 		// mbedtls_aes_crypt_cfb
 		// mbedtls_aes_crypt_cbc
 

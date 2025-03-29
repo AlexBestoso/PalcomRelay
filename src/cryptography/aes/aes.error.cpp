@@ -6,3 +6,6 @@
 AesError::AesError(const char *function, const char *msg, int errorCode) : CoreException(function, msg, errorCode){
 	this->setClassName("PalcomAes");
 }
+AesError::AesError(const AesError &e, const char *function, const char *msg, int errorCode) : CoreException(e, function, msg, errorCode){
+	this->setClassName("PalcomAes");
+}

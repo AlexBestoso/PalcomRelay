@@ -93,6 +93,9 @@ void Cryptography::aesEncrypt(unsigned char *out){
 		case CRYPTOGRAPHY_AES_MODE_CTR:
 			this->aes.encrypt_ctr(out);
 		break;
+		case CRYPTOGRAPHY_AES_MODE_ECB:
+			this->aes.encrypt_ecb(out);
+		break;
 		default:
 			throw CryptographyError("aesEncrypt", "Invalid mode provided.", 0x00);
 	}
@@ -109,6 +112,9 @@ void Cryptography::aesDecrypt(unsigned char *out){
 		break;
 		case CRYPTOGRAPHY_AES_MODE_CTR:
 			this->aes.decrypt_ctr(out);
+		break;
+		case CRYPTOGRAPHY_AES_MODE_ECB:
+			this->aes.decrypt_ecb(out);
 		break;
                 default:
                         throw CryptographyError("aesDecrypt", "Invalid mode provided.", 0x00);

@@ -143,10 +143,46 @@ void PalcomAes::decrypt_ctr(unsigned char *out){
 	try{
 		this->encrypt_ctr(out);
 	}catch(AesError &e){
-		throw AesError("decrypt_ctr", "failed to decrypt", 0);
+		throw AesError(e, "decrypt_ctr", "failed to decrypt", 0);
 	}
 }
 
+/*
+ * WARNING: Out must be a buffer of 16 minimum. */
+void PalcomAes::encrypt_ecb(unsigned char *out){
+	const char *funcName = "encrypt_ecb";
+	if(this->stateSize != 16 || this->state == NULL)
+		throw AesError(funcName, "ECB can only handle 16 bytes at a time.", 0);
+
+	try{
+		this->reset();
+		for(int i=0; i<16; i++) hyperX[i] = this->state[i];
+		mbedErrorHandle(mbedtls_aes_crypt_ecb(&this->aes, MBEDTLS_AES_ENCRYPT, hyperX, hyperY));
+		for(int i=0; i<16; i++) out[i] = hyperY[i];
+		this->reset();
+		
+	}catch(AesError &e){
+		this->reset();
+		throw AesError(e, funcName, "Encryption failure.", 0);
+	}
+}
+void PalcomAes::decrypt_ecb(unsigned char *out){
+	const char *funcName = "decrypt_ecb";
+	if(this->stateSize != 16 || this->state == NULL)
+                throw AesError(funcName, "ECB can only handle 16 bytes at a time.", 0);
+
+        try{
+                this->reset();
+                for(int i=0; i<16; i++) hyperX[i] = this->state[i];
+                mbedErrorHandle(mbedtls_aes_crypt_ecb(&this->aes, MBEDTLS_AES_DECRYPT, hyperX, hyperY));
+                for(int i=0; i<16; i++) out[i] = hyperY[i];
+                this->reset();
+
+        }catch(AesError &e){
+                this->reset();
+                throw AesError(e, funcName, "Encryption failure.", 0);
+        }
+}
 /*
 void PalcomAes::initNumberGen(void){
 	mbedtls_ctr_drbg_init(&ctr_drbg);

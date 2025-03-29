@@ -3,4 +3,5 @@ class AesError : public CoreException{
 
 	public:
 		AesError(const char *function, const char *msg, int errorCode);
+		AesError(const AesError &e, const char *function, const char *msg, int errorCode);
 };

@@ -106,6 +106,7 @@ void loop(void){
     core.driveCore();
   }catch(CoreException &e){
     e.out();
+    
   }
   /*if(palcomRelay.fetchPacket()){
     palcomRelay.executeRelay(relayMode);

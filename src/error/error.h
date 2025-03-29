@@ -21,9 +21,10 @@ class CoreException : public std::exception{
                 String errorMessage;
 		String className;
 		String functionName;
+		String from;
                 uint32_t _errorCode;
         public:
-		CoreException(const CoreException&);
+		CoreException(const CoreException& e, String fName, String msg, uint8_t errorCode);
                 CoreException(String msg, uint8_t errorCode);
                 CoreException(String fName, String msg, uint8_t errorCode);
 		CoreException(String msg, String classN, String funcN, uint8_t errorCode);

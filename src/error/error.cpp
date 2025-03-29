@@ -3,6 +3,7 @@
 #include "./error.h"
 
 CoreException::CoreException(String msg, uint8_t errorCode){
+	this->from = "";
 	this->errorMessage = msg;
         this->className = "";
         this->functionName = "";
@@ -10,15 +11,27 @@ CoreException::CoreException(String msg, uint8_t errorCode){
 }
 
 CoreException::CoreException(String fName, String msg, uint8_t errorCode){
+	this->from = "";
 	this->errorMessage = msg;
 	this->_errorCode = errorCode;
 	this->functionName = fName;
 }
 
 CoreException::CoreException(String msg, String classN, String funcN, uint8_t errorCode){
+	this->from = "";
 	this->errorMessage = msg;
         this->className = classN;
         this->functionName = funcN;
+        this->_errorCode = errorCode;
+}
+
+CoreException::CoreException(const CoreException& e, String fName, String msg, uint8_t errorCode){
+	this->from = "From : ";
+	this->from += this->where();
+	this->from += " - ";
+	this->from += this->what();
+	this->errorMessage = msg;
+        this->functionName = fName;
         this->_errorCode = errorCode;
 }
 
@@ -69,7 +82,9 @@ const char *CoreException::codeTranslate(void){
 }
 	
 void CoreException::out(void){
-	Serial.printf("[%ld:%s] %s %s\n", this->_errorCode, this->codeTranslate(), this->where().c_str(), this->what().c_str());
+	String From = this->from == "" ? "" : "\r\n";
+	From += this->from;
+	Serial.printf("[%ld:%s] %s %s\n", this->_errorCode, this->codeTranslate(), this->where().c_str(), this->what().c_str(), From.c_str());
 }
 
 void CoreException::halt(void){
