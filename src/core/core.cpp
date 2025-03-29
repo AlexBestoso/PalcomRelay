@@ -1,8 +1,19 @@
 #include <Arduino.h>
 #include <cstdint>
+
+#include <mbedtls/md.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/bignum.h>
+#include <mbedtls/x509.h>
+#include <mbedtls/rsa.h>
+#include <mbedtls/aes.h>
+
 #include <src/error/error.h>
 #include <src/taskQueue/taskQueue.h>
 #include <src/init/init.h>
+#include <src/cryptography/cryptography.h>
+
 #include <src/core/graphics/graphics.h>
 #include <src/core/comms/comms.h>
 
@@ -11,7 +22,9 @@
 extern TaskQueue taskQueue;
 PalcomCore::PalcomCore(void){ }
 
-
+PalcomCore::PalcomCore(Cryptography *crypto){
+	this->cryptography = crypto;
+}
 
 void PalcomCore::startCore(void){
 	this->initer.initSerial();

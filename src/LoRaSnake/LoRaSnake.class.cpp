@@ -139,8 +139,8 @@ void LoRaSnake::sendStart(unsigned char *v, size_t l){
 }
 
 bool LoRaSnake::send(uint8_t *d, size_t s){
-  	if(s >= 256)
-    		s= 255;
+  	if(s >= LORA_SNAKE_MAX_BUFFER)
+    		s= LORA_SNAKE_MAX_BUFFER;
   	if(running){
     		listenStop();
     		delay(500);

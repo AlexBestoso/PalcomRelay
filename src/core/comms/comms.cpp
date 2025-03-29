@@ -1,8 +1,18 @@
 #include <Arduino.h>
 #include <cstdint>
 #include <ds3231.h> 
+
+#include <mbedtls/md.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/bignum.h>
+#include <mbedtls/x509.h>
+#include <mbedtls/rsa.h>
+#include <mbedtls/aes.h>
+
 #include <src/error/error.h>
 #include <src/taskQueue/taskQueue.h>
+#include <src/cryptography/cryptography.h>
                 
 #include "./comms.h"
                 

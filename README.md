@@ -1,5 +1,5 @@
 # Palcom Relay Node
-`Version 1.0.2 alpha`
+`Version 1.0.6 alpha`
 Source code for the palcom communication system's node middle points.
 
 <h2>Updates for this version</h2>
@@ -9,10 +9,14 @@ Source code for the palcom communication system's node middle points.
 <li><b>Built the system Core class</b></li>
 <li>completed baseline taskqueue implementation.</li>
 <li>Built out comms task queue and recieve task</li>
+<li>added aes xts and ofb modes</li>
+<li>added aes ctr mode</li>
+<li>added aes ecb mode, cryptosystem foundation laid.</li>
 </ol>
 
 <h3>Todo:</h3>
 <ul>
+<li>Implement the remaining AES XTS for SD card and partition storage</li>
 <li>Build out threads/Xtasks for each of the sub cores.</li>
 <li>Build out SD card initalization.</li>
 </ul>

@@ -29,6 +29,15 @@ Programmer 	Esptool
 #include <string>
 #include <USB.h>
 #include <RadioLib.h>
+//#include "mbedtls/config.h"
+#include <mbedtls/md.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/bignum.h>
+#include <mbedtls/x509.h>
+#include <mbedtls/rsa.h>
+#include <mbedtls/aes.h>
+#include <base64.h>
 
 
 int relayMode = 0; // RELAY_MODE_DISABLED
@@ -64,6 +73,9 @@ SX1262 _radio = new Module(7, 33, 8, 34);
 #include <src/LoRaSnake/LoRaSnake.class.h>
 LoRaSnake loraSnake;
 
+#include <src/cryptography/cryptography.h>
+Cryptography cryptography;
+
 // Core Includes
 #include <src/core/graphics/graphics.h>
 #include <src/core/comms/comms.h>
@@ -71,17 +83,10 @@ LoRaSnake loraSnake;
 #include "./classes/classLinker.h"
 
 #include <src/core/core.h>
-PalcomCore core;
+PalcomCore core(&cryptography);
 
 PalcomRelay palcomRelay;
 
-/*void debug(){
-  Serial.printf("Received packet: [%d] ", loraSnake.lrsPacket.data_size);
-    for(int i=0; i<loraSnake.lrsPacket.data_size; i++){
-      Serial.printf("%c", loraSnake.lrsPacket.data[i]);
-    }
-    Serial.printf("\n");
-}*/
 
 
 
@@ -97,7 +102,12 @@ void setup(void){
 
 
 void loop(void){
-  core.driveCore();
+  try{
+    core.driveCore();
+  }catch(CoreException &e){
+    e.out();
+    
+  }
   /*if(palcomRelay.fetchPacket()){
     palcomRelay.executeRelay(relayMode);
   }*/
