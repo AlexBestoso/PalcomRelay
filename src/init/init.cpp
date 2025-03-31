@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <ds3231.h>
 #include <SPI.h>
+#include <SD.h>
 
 #include <src/error/error.h>
 #include <src/LoRaSnake/LoRaSnake.class.h>
@@ -11,6 +12,8 @@
 extern OLED_CLASS_OBJ display;
 extern LoRaSnake loraSnake;
 extern int relayMode;
+extern SPIClass sdSPI;
+extern SPIClass loraSPI;
 
 PalcomInit::PalcomInit(void){
 	this->serialOn = false;
@@ -26,7 +29,6 @@ void PalcomInit::initRadio(void){
 		this->initSerial();
 
 
-	SPI.end();
 	SPI.begin(5, 3, 6);
 	bool err = loraSnake.init();
 	if(err == false){
@@ -82,4 +84,46 @@ void PalcomInit::initSettings(void){
       		pt.mode = relayMode;
       		pp.write(pt);
     	}
+}
+
+void PalcomInit::initStorage(void){
+	Serial.printf("Starting SD Storage...\n");
+	sdSPI.begin(14, 2, 11, 13);
+	if(SD.begin(13, sdSPI)){
+		uint8_t cardType = SD.cardType();
+                                uint32_t cardSize = SD.cardSize() / (1024 * 1024);
+                                uint32_t cardTotal = SD.totalBytes() / (1024 * 1024);
+                                uint32_t cardUsed = SD.usedBytes() / (1024 * 1024);
+
+                                if(cardType == CARD_NONE){
+                                        Serial.println("No SD_MMC card attached");
+                                }else{
+                                        Serial.print("SD_MMC Card Type: ");
+                                        if(cardType == CARD_MMC){
+                                                Serial.println("MMC");
+                                        }else if(cardType == CARD_SD) {
+                                                Serial.println("SDSC");
+                                        }else if(cardType == CARD_SDHC) {
+                                                Serial.println("SDHC");
+                                        }else{
+                                                Serial.println("UNKNOWN");
+                                        }
+                                        Serial.printf("SD Card Size: %lu MB\n", cardSize);
+                                        Serial.printf("Total space: %lu MB\n",  cardTotal);
+                                        Serial.printf("Used space: %lu MB\n",   cardUsed);
+				}
+	}else{
+		Serial.printf("SPI begin failed\n");
+	}
+		/*if (SDCARD_CS >  0) {
+	sdSPI.begin(14, 2, 11, 13);
+	if (!SD.begin(13, sdSPI)) {
+	display.drawString(display.getWidth() / 2, display.getHeight() / 2, "SDCard  FAIL");
+	} else {
+	display.drawString(display.getWidth() / 2, display.getHeight() / 2 - 16, "SDCard  PASS");
+	uint32_t cardSize = SD.cardSize() / (1024 * 1024);
+	display.drawString(display.getWidth() / 2, display.getHeight() / 2, "Size: " + String(cardSize) + "MB");
+	}
+	display.display();
+	delay(2000);*/
 }

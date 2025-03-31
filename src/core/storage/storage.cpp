@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <cstdint>
-#include <ds3231.h> 
 
 #include <mbedtls/md.h>
 #include <mbedtls/entropy.h>
@@ -13,19 +12,19 @@
 #include <src/error/error.h>
 #include <src/taskQueue/taskQueue.h>
 #include <src/cryptography/cryptography.h>
-#include <src/LoRaSnake/LoRaSnake.class.h>
+
+#include <SD.h>
                 
-#include "./comms.h"
-                
-extern OLED_CLASS_OBJ display;
+#include "./storage.h"
+
 extern TaskQueue taskQueue;
-extern LoRaSnake loraSnake;
+extern SPIClass sdSPI;
                 
-CoreComms::CoreComms(void){
-        this->taskType = TASK_SPACE_COMMS;
+CoreStorage::CoreStorage(void){
+        this->taskType = TASK_SPACE_STORAGE;
 }
 
-bool CoreComms::pop(void){
+bool CoreStorage::pop(void){
         struct task_queue_task t = taskQueue.pop(this->taskType);
         if(!t.active)
                 return false;
@@ -33,21 +32,18 @@ bool CoreComms::pop(void){
         return true;
 }
 
-bool CoreComms::fetchTask(void){
+bool CoreStorage::fetchTask(void){
         return this->pop();
 }
 
-bool CoreComms::runTask(void){
+bool CoreStorage::runTask(void){
         switch(this->task.instruction){
-                case COMMS_INSTR_RECV:{
-			if(loraSnake.readRecv() != 1){
-				return false;
-			}
-			struct task_queue_task tsk = taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_COMMS, STORAGE_INSTR_RECVED);
-			for(int i=0; i<loraSnake.lrsPacket.data_size && i<256; i++){
-				tsk.msg[i] = loraSnake.lrsPacket.data[i];
-			}
-			taskQueue.push(tsk);
+                case STORAGE_INSTR_RECVED:{
+
+			Serial.printf("Storing the message '%s'\n", (const char *)this->task.msg);
+			taskQueue.push(
+                		taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_STORAGE, GRAPHICS_INSTR_HOMEPAGE)
+        		);
                 }
                 return true;
                 //default: Do nothing.
