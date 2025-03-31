@@ -62,6 +62,7 @@ TaskQueue taskQueue;
 OLED_CLASS_OBJ display(OLED_ADDRESS, 18, 17);
 
 SPIClass sdSPI(SPI);
+SPIClass loraSPI(SPI);
 
 #if !ARDUINO_USB_CDC_ON_BOOT
 USBCDC USBSerial;
@@ -79,6 +80,7 @@ Cryptography cryptography;
 // Core Includes
 #include <src/core/graphics/graphics.h>
 #include <src/core/comms/comms.h>
+#include <src/core/storage/storage.h>
 #include <src/init/init.h>
 #include "./classes/classLinker.h"
 

@@ -13,6 +13,7 @@ class PalcomCore{
 		PalcomInit initer;
 		CoreGraphics subCoreGraphics;
 		CoreComms subCoreComms;
+		CoreStorage subCoreStorage;
 		Cryptography *cryptography;
 		
 	public:

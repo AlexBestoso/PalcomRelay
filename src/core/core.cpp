@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include <cstdint>
+#include <SPI.h>
+#include <SD.h>
 
 #include <mbedtls/md.h>
 #include <mbedtls/entropy.h>
@@ -16,10 +18,16 @@
 
 #include <src/core/graphics/graphics.h>
 #include <src/core/comms/comms.h>
+#include <src/core/storage/storage.h>
+
+#include <src/LoRaSnake/LoRaSnake.class.h>
 
 
 #include "./core.h"
 extern TaskQueue taskQueue;
+extern SPIClass sdSPI;
+extern LoRaSnake loraSnake;
+
 PalcomCore::PalcomCore(void){ }
 
 PalcomCore::PalcomCore(Cryptography *crypto){
@@ -28,6 +36,7 @@ PalcomCore::PalcomCore(Cryptography *crypto){
 
 void PalcomCore::startCore(void){
 	this->initer.initSerial();
+	this->initer.initStorage();
     	this->initer.initRadio();
     	this->initer.initDisplay();
     	this->initer.initUsb();
@@ -50,6 +59,8 @@ void PalcomCore::driveCore(void){
 	}	
 
 	// storage core
-
+	if(this->subCoreStorage.fetchTask()){
+		this->subCoreStorage.runTask();
+	}
 	// usb core ? 
 }
