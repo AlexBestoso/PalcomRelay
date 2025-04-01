@@ -99,13 +99,13 @@ void PalcomAes::decrypt_xts(unsigned char *out){
 void PalcomAes::encrypt_ofb(unsigned char *out){
 	int err = mbedtls_aes_crypt_ofb(&this->aes, this->stateSize, &this->ctr, this->initalizationVector, (const unsigned char *)this->state, out);
 	if(err != 0)
-		throw AesError("encrypt_ofb", "Encryption failed.", 0);
+		throw AesError("encrypt_ofb", "Encryption failed.", err);
 
 }
 void PalcomAes::decrypt_ofb(unsigned char *out){
 	int err = mbedtls_aes_crypt_ofb(&this->aes, this->stateSize, &this->ctr, this->initalizationVector, (const unsigned char *)this->state, out);
 	if(err != 0)
-		throw AesError("decrypt_ofb", "Decryption failed.", 0);
+		throw AesError("decrypt_ofb", "Decryption failed.", err);
 }
 
 void PalcomAes::setNonce(unsigned char *nonce, size_t nsize, size_t nonceOffset){
@@ -147,6 +147,16 @@ void PalcomAes::decrypt_ctr(unsigned char *out){
 	}
 }
 
+void PalcomAes::encrypt_cbc(unsigned char *out){
+	const char *funcName = "encrypt_cbc";
+	mbedErrorHandle(mbedtls_aes_crypt_cbc(&this->aes, MBEDTLS_AES_ENCRYPT, this->stateSize, this->initalizationVector, (const unsigned char *)this->state, out));
+
+}
+
+void PalcomAes::decrypt_cbc(unsigned char *out){
+	const char *funcName = "decrypt_cbc";
+        mbedErrorHandle(mbedtls_aes_crypt_cbc(&this->aes, MBEDTLS_AES_DECRYPT, this->stateSize, this->initalizationVector, (const unsigned char *)this->state, out));
+}
 /*
  * WARNING: Out must be a buffer of 16 minimum. */
 void PalcomAes::encrypt_ecb(unsigned char *out){
@@ -210,7 +220,7 @@ void PalcomAes::setEncryptionKey(const unsigned char *key, size_t size){
 		msg += "' but can only be 16, 24, or 32";
 		throw AesError("setEncryptionKey", msg.c_str(), 0);
 	}
-	mbedtls_aes_setkey_enc(&this->aes, (const unsigned char *)key, size);
+	mbedtls_aes_setkey_enc(&this->aes, (const unsigned char *)key, size*8);
 }
 
 void PalcomAes::setDecryptionKey(const unsigned char *key, size_t size){
@@ -224,7 +234,7 @@ void PalcomAes::setDecryptionKey(const unsigned char *key, size_t size){
                 msg += "' but can only be 16, 24, or 32";
                 throw AesError("setDecryptionKey", msg.c_str(), 0);
         }
-        mbedtls_aes_setkey_dec(&this->aes, (const unsigned char *)key, size);
+        mbedtls_aes_setkey_dec(&this->aes, (const unsigned char *)key, size*8);
 }
         
 void PalcomAes::setIv(unsigned char *iv, size_t ivSize){

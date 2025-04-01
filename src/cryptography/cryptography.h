@@ -9,6 +9,7 @@
 #define CRYPTOGRAPHY_AES_MODE_OFB 2
 #define CRYPTOGRAPHY_AES_MODE_CTR 3
 #define CRYPTOGRAPHY_AES_MODE_ECB 4
+#define CRYPTOGRAPHY_AES_MODE_CBC 5
 
 #include <src/cryptography/aes/aes.h>
 
@@ -21,10 +22,10 @@ class Cryptography{
 		mbedtls_entropy_context entropy;
 
 
-		void clearState(void);
 	public:
 		uint8_t state[CRYPTOGRAPHY_MAX_STATE];
 		size_t stateSize;
+		void clearState(void);
 		
 		Cryptography(void);
 		
