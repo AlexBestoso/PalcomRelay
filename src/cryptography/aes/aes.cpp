@@ -149,13 +149,30 @@ void PalcomAes::decrypt_ctr(unsigned char *out){
 
 void PalcomAes::encrypt_cbc(unsigned char *out){
 	const char *funcName = "encrypt_cbc";
-	mbedErrorHandle(mbedtls_aes_crypt_cbc(&this->aes, MBEDTLS_AES_ENCRYPT, this->stateSize, this->initalizationVector, (const unsigned char *)this->state, out));
+	mbedErrorHandle(
+		mbedtls_aes_crypt_cbc(
+			&this->aes, 
+			MBEDTLS_AES_ENCRYPT, 
+			this->stateSize, 
+			this->initalizationVector, 
+			(const unsigned char *)this->state, 
+			out)
+	);
 
 }
 
 void PalcomAes::decrypt_cbc(unsigned char *out){
 	const char *funcName = "decrypt_cbc";
-        mbedErrorHandle(mbedtls_aes_crypt_cbc(&this->aes, MBEDTLS_AES_DECRYPT, this->stateSize, this->initalizationVector, (const unsigned char *)this->state, out));
+	Serial.printf("Decrypting with size of %ld | %d\n", this->stateSize, this->stateSize % 16);
+        mbedErrorHandle(
+		mbedtls_aes_crypt_cbc(
+			&this->aes, 
+			MBEDTLS_AES_DECRYPT, 
+			this->stateSize+1, 
+			this->initalizationVector, 
+			(const unsigned char *)this->state, 
+			out)
+	);
 }
 /*
  * WARNING: Out must be a buffer of 16 minimum. */

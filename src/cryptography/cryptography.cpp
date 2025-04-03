@@ -32,6 +32,7 @@ void Cryptography::clearState(void){
 void Cryptography::setState(uint8_t *state, size_t stateSize){
 	this->clearState();
 	this->stateSize = stateSize;
+	Serial.printf("Setting state of size %ld\n", stateSize);
 	for(int i=0; i<stateSize && i<CRYPTOGRAPHY_MAX_STATE; i++){
 		this->state[i] = state[i];
 	}
@@ -105,6 +106,7 @@ void Cryptography::aesEncrypt(unsigned char *out){
 }
 
 void Cryptography::aesDecrypt(unsigned char *out){
+	this->aes.setState(this->state, this->stateSize);
         switch(this->aes_mode){
                 case CRYPTOGRAPHY_AES_MODE_XTS:
 			throw CryptographyError("aesEncrypt", "Mode not Implemented.", 0);

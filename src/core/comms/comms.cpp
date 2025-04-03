@@ -73,39 +73,63 @@ bool CoreComms::fetchTask(void){
 bool CoreComms::runTask(void){
         switch(this->task.instruction){
                 case COMMS_INSTR_RECV:{
+			struct task_queue_task tsk = taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_COMMS, STORAGE_INSTR_RECVED);
 			if(loraSnake.readRecv() != 1){
 				return false;
 			}
-			struct task_queue_task tsk = taskQueue.buildTask(TASK_SPACE_STORAGE, TASK_SPACE_COMMS, STORAGE_INSTR_RECVED);
+			deriveRoutingIv();
+			this->deriveRoutingRecvKey();
+		        this->deriveRoutingSendKey();
 			this->cryptography->setAesMode(CRYPTOGRAPHY_AES_MODE_CBC);
-			this->cryptography->setAesKey((uint8_t *)this->outKey, 32, (uint8_t *)this->inKey, 32);
+			this->cryptography->setState((uint8_t *)loraSnake.lrsPacket.data, loraSnake.lrsPacket.data_size);
+			this->cryptography->setAesKey((uint8_t *)this->outKey, 32, NULL, 32);
 			this->cryptography->setAesIv((uint8_t *)this->iv, 16);
-			this->cryptography->clearState();
+			this->cryptography->aesDecrypt(tsk.msg);
+		
 
-			for(int i=0; i<32; i+=16){
-				this->cryptography->setState(loraSnake.lrsPacket.data+i, 16);
-				this->cryptography->aesDecrypt((unsigned char *)tsk.msg+i);
-			}
-			
 			if(this->validatePadding((unsigned char *)tsk.msg, 256)){
 				taskQueue.push(tsk);
-				Serial.printf("Valid message received.\n");
+				tsk.to = TASK_SPACE_COMMS;
+				tsk.from = TASK_SPACE_COMMS;
+				tsk.instruction = COMMS_INSTR_SEND;
+				tsk.active = true;
+				taskQueue.push(tsk);
 			}else{
-				Serial.printf("Invalid message. not storing.\n");
 			}
                 }
                 return true;
+		case COMMS_INSTR_SEND:{
+			deriveRoutingIv();
+			this->deriveRoutingRecvKey();
+        		this->deriveRoutingSendKey();
+			struct task_queue_task tsk = taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_COMMS, GRAPHICS_INSTR_HOMEPAGE);
+			this->cryptography->setAesMode(CRYPTOGRAPHY_AES_MODE_CBC);
+			this->cryptography->setState((uint8_t *)this->task.msg, 256);
+			this->cryptography->setAesKey((uint8_t *)this->inKey, 32, NULL, 32);
+			this->cryptography->setAesIv((uint8_t *)this->iv, 16);
+			this->cryptography->aesEncrypt(tsk.msg);
+			
+			loraSnake.modeSend();
+
+			if(!loraSnake.send(tsk.msg, 255)){
+				Serial.printf("Failed to send message.\n");
+			}
+			
+			loraSnake.modeRecv();
+			if(!loraSnake.listenStart())
+				Serial.printf("Failed to start listener.\n");
+
+			taskQueue.push(tsk);
+		}
                 //default: Do nothing.
         }
         return false;
 }
 
 bool CoreComms::validatePadding(unsigned char *data, size_t dataSize){
-	if(dataSize != 256) return false;
-	for(int i=0; i<256; i++){
-		if((data[i]-this->padding[i] ^ this->padding[i]) != 0) return false;
-	}
-	return true;
+	if(data == NULL || dataSize != 256) return false;
+	if(data[0] == 'P' && data[1] == 'A' && data[2] == 'L') return true;
+	return false;
 }
 
 void CoreComms::init(Cryptography *c, unsigned char*CORE_ROUTING_KEY, size_t CORE_ROUTING_KEY_SIZE){

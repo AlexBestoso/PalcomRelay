@@ -82,7 +82,7 @@ const char *CoreException::codeTranslate(void){
 }
 	
 void CoreException::out(void){
-	String From = this->from == "" ? "" : "\r\n";
+	String From = this->from == "" ? "" : "\n\t";
 	From += this->from;
 	Serial.printf("[%ld:%s] %s %s\n", this->_errorCode, this->codeTranslate(), this->where().c_str(), this->what().c_str(), From.c_str());
 }

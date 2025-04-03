@@ -1,5 +1,5 @@
 # Palcom Relay Node
-`Version 1.0.8 alpha`
+`Version 1.0.9 alpha`
 Source code for the palcom communication system's node middle points.
 
 <h2>Updates for this version</h2>
@@ -14,6 +14,7 @@ Source code for the palcom communication system's node middle points.
 <li>added aes ecb mode, cryptosystem foundation laid.</li>
 <li>Integrated storage core.</li>
 <li>partial reouting protocol implemented</li>
+<li>Message Relay loop completed.</li>
 </ol>
 
 <h3>Todo:</h3>
