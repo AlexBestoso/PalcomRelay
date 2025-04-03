@@ -32,6 +32,7 @@ PalcomCore::PalcomCore(void){ }
 
 PalcomCore::PalcomCore(Cryptography *crypto){
 	this->cryptography = crypto;
+	this->subCoreComms.init(crypto, (unsigned char*)CORE_ROUTING_KEY, CORE_ROUTING_KEY_SIZE);
 }
 
 void PalcomCore::startCore(void){

@@ -55,7 +55,7 @@ TaskQueue taskQueue;
 
 // Global Variables
 
-
+bool sdActive = false;
 
 
 

@@ -32,6 +32,7 @@ void Cryptography::clearState(void){
 void Cryptography::setState(uint8_t *state, size_t stateSize){
 	this->clearState();
 	this->stateSize = stateSize;
+	Serial.printf("Setting state of size %ld\n", stateSize);
 	for(int i=0; i<stateSize && i<CRYPTOGRAPHY_MAX_STATE; i++){
 		this->state[i] = state[i];
 	}
@@ -96,12 +97,16 @@ void Cryptography::aesEncrypt(unsigned char *out){
 		case CRYPTOGRAPHY_AES_MODE_ECB:
 			this->aes.encrypt_ecb(out);
 		break;
+		case CRYPTOGRAPHY_AES_MODE_CBC:
+			this->aes.encrypt_cbc(out);
+		break;
 		default:
 			throw CryptographyError("aesEncrypt", "Invalid mode provided.", 0x00);
 	}
 }
 
 void Cryptography::aesDecrypt(unsigned char *out){
+	this->aes.setState(this->state, this->stateSize);
         switch(this->aes_mode){
                 case CRYPTOGRAPHY_AES_MODE_XTS:
 			throw CryptographyError("aesEncrypt", "Mode not Implemented.", 0);
@@ -116,6 +121,9 @@ void Cryptography::aesDecrypt(unsigned char *out){
 		case CRYPTOGRAPHY_AES_MODE_ECB:
 			this->aes.decrypt_ecb(out);
 		break;
+		case CRYPTOGRAPHY_AES_MODE_CBC:
+                        this->aes.decrypt_cbc(out);
+                break;
                 default:
                         throw CryptographyError("aesDecrypt", "Invalid mode provided.", 0x00);
         }

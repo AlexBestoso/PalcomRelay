@@ -14,6 +14,7 @@ extern LoRaSnake loraSnake;
 extern int relayMode;
 extern SPIClass sdSPI;
 extern SPIClass loraSPI;
+extern bool sdActive;
 
 PalcomInit::PalcomInit(void){
 	this->serialOn = false;
@@ -97,7 +98,9 @@ void PalcomInit::initStorage(void){
 
                                 if(cardType == CARD_NONE){
                                         Serial.println("No SD_MMC card attached");
+					sdActive = false;
                                 }else{
+					sdActive = true;
                                         Serial.print("SD_MMC Card Type: ");
                                         if(cardType == CARD_MMC){
                                                 Serial.println("MMC");

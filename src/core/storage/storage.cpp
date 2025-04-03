@@ -19,6 +19,7 @@
 
 extern TaskQueue taskQueue;
 extern SPIClass sdSPI;
+extern bool sdActive;
                 
 CoreStorage::CoreStorage(void){
         this->taskType = TASK_SPACE_STORAGE;
@@ -39,8 +40,10 @@ bool CoreStorage::fetchTask(void){
 bool CoreStorage::runTask(void){
         switch(this->task.instruction){
                 case STORAGE_INSTR_RECVED:{
-
-			Serial.printf("Storing the message '%s'\n", (const char *)this->task.msg);
+			if(sdActive)
+				Serial.printf("Storing the message '%s'\n", (const char *)this->task.msg);
+			else
+				Serial.printf("SD card not active.\n");
 			taskQueue.push(
                 		taskQueue.buildTask(TASK_SPACE_GRAPHICS, TASK_SPACE_STORAGE, GRAPHICS_INSTR_HOMEPAGE)
         		);
